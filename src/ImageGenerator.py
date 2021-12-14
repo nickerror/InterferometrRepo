@@ -9,7 +9,7 @@ def main():
   h = 480 #height
   middleX=w/2 #Middle of centre, X axis
   middleY=h/2 #Middle of centre, Y axis
-  ringsDifference=w*w/6 #Difference in squared distance from center between succesive stripes
+  ringsDifference=w*w/6.07 #Difference in squared distance from center between succesive stripes
   #57 600 #68 266
   #epsilon=0 #set epsilon
   epsilons=np.arange(1.0)/1000.0
@@ -17,8 +17,6 @@ def main():
   pixelMax=210  #max brightness of pixel, 8bit-> 0-255
   pixelMin=40 #min brightness of pixe, 8bit-> 0-255
 
-
-  
   for epsilon in epsilons:
     img=GenerateImage(w,h,middleX,middleY,ringsDifference,epsilon,pixelMax,pixelMin)
     print(img.shape)
