@@ -12,8 +12,8 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from torch.optim import lr_scheduler
 from tqdm.auto import tqdm
 
-from CellPaintingDataset import CellPaintingDataset
-#from CellPaintingModel import CNN
+from EpsilonDataset import EpsilonDataset
+#from EpsilonModel import CNN
 from __init__ import Config
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -56,7 +56,7 @@ def get_stratified_sampler(config, generator):
 
 def prepare_data(config, data_transform):
     #dataset --> object from class CellPaintingDataset
-    dataset = CellPaintingDataset(config.data_root_dir, config.dataset_metadata, transform=data_transform)
+    dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=data_transform)
     g = torch.Generator(device=device).manual_seed(0)
     train_sampler, val_sampler, test_sampler = get_stratified_sampler(config, g)
     loader_params = dict(dataset=dataset, batch_size=config.batch_size, num_workers=config.num_workers,
@@ -75,4 +75,10 @@ data_transform = transforms.Compose([
 ])
 
 print(data_transform)
+#for test
+dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=data_transform)
+first_data = dataset[2]
+features, labels = first_data
+#end test
+
 dataloaders = prepare_data(config, data_transform)

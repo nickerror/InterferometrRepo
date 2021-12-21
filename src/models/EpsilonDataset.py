@@ -5,10 +5,10 @@ import torch
 from tifffile import imread
 
 
-class CellPaintingDataset(torch.utils.data.Dataset):
+class EpsilonDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir, annotation_file, transform=None):
         self.root_dir = root_dir
-        self.annotations = pd.read_csv(annotation_file)
+        self.annotations = pd.read_csv(annotation_file,skiprows=1)
         self.transform = transform
 
     def __len__(self):
@@ -23,5 +23,5 @@ class CellPaintingDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    x = CellPaintingDataset("../../data/processed", "../../data/data.csv")
+    x = EpsilonDataset("../../data/processed", "../../data/data.csv")
     print(x.__getitem__(0))
