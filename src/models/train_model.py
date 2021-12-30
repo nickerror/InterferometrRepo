@@ -21,25 +21,7 @@ np.random.seed(0)
 
 
 
-def get_stratified_sampler(config, generator):
-    """
-    Parameters
-    ----------
-    config : TYPE
-        DESCRIPTION.
-    generator : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    train_sampler : TYPE
-        train samplers.
-    val_sampler : TYPE
-        value.
-    test_sampler : TYPE
-        test samples.
-    """
-    
+def get_stratified_sampler(config, generator):    
     df = pd.read_csv(config.dataset_metadata) #read data from CSV to var df
     cartridges_names = list(df.folder.unique())
     test_cartridge = cartridges_names.pop(np.random.randint(0, len(cartridges_names)))
@@ -69,15 +51,17 @@ def prepare_data(config, data_transform):
 #start program:
 config = Config()
 data_transform = transforms.Compose([
+    transforms.CenterCrop(488),
+    transforms.Resize(224),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[163.24, 536.39, 425.26, 581.64],
-                          std=[ 204.27, 1386.95,  917.2 ,  519.7 ])
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                          std=[0.229, 0.224, 0.225])
 ])
 
 print(data_transform)
 #for test
 dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=data_transform)
-first_data = dataset[2]
+first_data = dataset[3]
 features, labels = first_data
 #end test
 
