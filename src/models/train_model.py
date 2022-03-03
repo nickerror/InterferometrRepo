@@ -1,78 +1,107 @@
-import copy
+from IPython.display import clear_output 
+clear_output()
 
-import numpy as np
-import pandas as pd
+from __future__ import print_function, division
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
-import torchvision.transforms as transforms
-import wandb
-from sklearn.model_selection import StratifiedShuffleSplit
 from torch.optim import lr_scheduler
-from tqdm.auto import tqdm
+import numpy as np
+import torchvision
+from torchvision import datasets, models, transforms
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import time
+import os
+import copy
+import pandas as pd
+import cv2
+import PIL
+import math
 
-from EpsilonDataset import EpsilonDataset
-import torch.nn as nn
-#from EpsilonModel import CNN
-from __init__ import Config
+#for test - number of the photo loaded
+photoLoadedNo = 0
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-device="cpu"
-print(device)
-np.random.seed(0)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+class Config:
+    def __init__(self):
+        self.epochs = 25
+        self.cuda=True
+        self.num_classes = 1
+        self.batch_size = 4
+        self.learning_rate = 0.01
+        self.dataset = "InterferometerPhoto"
+        #self.architecture = "CNN"
+        self.pin_memory = True
+        self.momentum = 0.9
+        self.step_size = 3
+        self.gamma = 0.1
+        self.dataset_metadata = "../../data/raw/1channel/reference/epsilon.csv" # will change for processed
+        self.num_workers = 0
+        self.data_root_dir = "../../data/raw/1channel/photo" # will change for processed
+        self.data_transforms = transforms.Compose([
+                #transforms.CenterCrop(448),
+                #transforms.Resize(224),#############################Lub od razu centercrop(224)
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.491, 0.491, 0.491],
+                                      std=[0.210, 0.210, 0.210]) 
+                #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
 
+class EpsilonDataset(torch.utils.data.Dataset):
+    def __init__(self, root_dir, annotation_file, transform=None):
+        self.root_dir = root_dir
+        #self.annotations = pd.read_csv(annotation_file,skiprows=1)
+        self.annotations = pd.read_csv(annotation_file,skiprows=0, delim_whitespace=' ')
+        self.transform = transform
 
+    def __len__(self):
+        return len(self.annotations)
 
-class CNN(nn.Module):
-    def __init__(self, model, num_classes=9, train_net=False):
-        super(CNN, self).__init__()
-        self.model = model
-        #if not train_net:
-        #    for param in self.model.parameters():
-        #        param.requires_grad = False
-        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
-        self.model.device=device
-        #layer = self.model.conv1
-        #new_in_channels = 4
-        #new_layer = nn.Conv2d(in_channels=new_in_channels,
-        #                      out_channels=layer.out_channels,
-        #                      kernel_size=layer.kernel_size,
-        #                      stride=layer.stride,
-        #                      padding=layer.padding,
-        #                      bias=layer.bias)
-        #copy_weights = 0
-        #new_layers_weight = new_layer.weight.clone()
-        #new_layers_weight[:, :layer.in_channels, :, :] = layer.weight.clone()
-        #for i in range(new_in_channels - layer.in_channels):
-        #    channel = layer.in_channels + i
-        #    new_layers_weight[:, channel:channel + 1, :, :] = layer.weight[:, copy_weights:copy_weights + 1, ::].clone()
-        #new_layer.weight = nn.Parameter(new_layers_weight)
-        #self.model.conv1 = new_layer
+    def __getitem__(self, index):
+        img = np.array(cv2.imread(os.path.join(self.root_dir, str(str("%05d" %self.annotations.imgnr[index]))+ ".png"))).astype(np.float32)
+        img=PIL.Image.fromarray(np.uint8(img))
+        y_label = self.annotations.eps[index]
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, y_label
 
-    def forward(self, images):
-        features = self.model(images)
-        return features
-
-def prepare_data(config, data_transform):
+def prepare_data(config):
     #dataset --> Photos from interferometer
-    dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=data_transform)
+    dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
 
     g = torch.Generator(device=device).manual_seed(0)
     datasetLen=dataset.__len__()
-    trainLen=int(0.6*datasetLen)
-    valLen=int(0.1*datasetLen)
-    testLen=int(0.3*datasetLen)
+    trainLen=int(0.8*datasetLen)
+    valLen=int(0.2*datasetLen)
+    testLen=int(0.0*datasetLen)
 
+    mean=0
+    std=0
+    trainSize=0.8
+    valSize=0.2
     trainIndex, valIndex, testIndex=[],[],[]
 
     for i in range (datasetLen):
-        if(i<trainLen): trainIndex.append(i)
-        elif (i<trainLen+valLen): valIndex.append(i)
-        elif(i<trainLen+valLen+testLen): testIndex.append(i)
-    trainIndex=valIndex
-    testIndex=valIndex
+        randomNumber=np.random.rand()
+        #print(randomNumber)
+        if(randomNumber<trainSize): trainIndex.append(i)
+        else: valIndex.append(i)
+        img,epsilon=dataset[i]
+        img=np.array(img)
+        mean+=np.mean(img)
+        std+=np.std(img)
+         
+    valIndex=trainIndex
+
+    mean=mean/datasetLen#/255
+    std=std/datasetLen#/255
+    #print("mean, std:",mean, std)
+    #trainIndex=valIndex
+    #testIndex=valIndex
     loader_params = dict(dataset=dataset, batch_size=config.batch_size, num_workers=config.num_workers,
                          pin_memory=config.pin_memory, generator=g, shuffle=False)
     train_loader = torch.utils.data.DataLoader(**loader_params, sampler=trainIndex )
@@ -80,96 +109,129 @@ def prepare_data(config, data_transform):
     test_loader = torch.utils.data.DataLoader(**loader_params, sampler=testIndex)
     return {'train': train_loader, 'val': validation_loader, 'test': test_loader}
 
-def prepare_model(model_architecture, config):
-    model = CNN(model_architecture, num_classes=config.num_classes).to(device)
-    criterion = nn.L1Loss()
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=config.momentum)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=config.step_size, gamma=config.gamma)
-    return model, criterion, optimizer, exp_lr_scheduler
+
+##!!!!!!!!!!!!___LOAD_DATA______!!!!!!!!!!!
+config=Config()
 
 
-def train_log(loss, accuracy, example_ct, epoch, is_train):
-    if is_train:
-        #wandb.log({"epoch": epoch, "loss": loss, "acc": accuracy * 100.}, step=example_ct)
-        print("epoch", epoch, "loss", loss, "acc", accuracy * 100.)
-    else:
-        #wandb.log({"epoch": epoch, "val_loss": loss, "val_acc": accuracy * 100.}, step=example_ct)
-        print("epoch", epoch, "val_loss", loss, "val_acc", accuracy * 100.)
+#image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
+#                                          data_transforms[x])
+#                  for x in ['train', 'val']}
+dataloaders = prepare_data(config)
+dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
+#class_names = image_datasets['train'].classes
 
 
-def train(model, criterion, optimizer, scheduler, dataloaders, config):
+print("Device: ", device)
+print("Dataloader train len: ", len(dataloaders["train"]), "val len: ", len(dataloaders["val"]))
+
+##!!!!!!!!!!!!___Training the model______!!!!!!!!!!!
+def customLossFunction(outputs, labels):
+    totalLoss=0.0
+    #print(len(outputs))
+    for i in range (len(outputs)):
+        loss=min(abs(labels[i]%1-outputs[i]%1), 1-abs(labels[i]%1-outputs[i]%1))
+        totalLoss+=loss
+        #totalLoss=(100*loss)*(100*loss)
+    totalLoss/=len(outputs)
+    #totalLoss=math.sqrt(totalLoss)
+    return totalLoss
+
+def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+    since = time.time()
+
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc, example_ct, batch_ct = 0.0, 0, 0
-    for epoch in tqdm(range(config.epochs)):
+    best_acc = 0.0
+
+    for epoch in range(num_epochs):
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
-            model.train(phase == 'train')
+            if phase == 'train':
+                model.train()  # Set model to training mode
+            else:
+                model.eval()   # Set model to evaluate mode
+
             running_loss = 0.0
             running_corrects = 0
-            num_examples = 0
-            tempLoss=0
-            with tqdm(dataloaders[phase], unit="batch", leave=False ) as tepoch:
-                for _, (inputs, labels) in enumerate(tepoch):
-                    tepoch.set_description(f"Epoch {epoch}")
-                    labels = labels.to(device)
-                    inputs = inputs.to(device)
-                    optimizer.zero_grad()
-                    with torch.set_grad_enabled(phase == 'train'):
-                        outputs = model(inputs)
 
-                        #_, predictions = torch.max(outputs, 1)
-                        #print("\n", outputs.shape, labels.shape)
-                        #print(outputs, labels)
+            # Iterate over data.
+            for inputs, labels in dataloaders[phase]:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
 
-                        #loss = criterion(outputs, labels)
-                        loss=0
-                        for i in range(len(outputs)):
-                            #print(outputs[i], labels[i])
-                            loss=loss+abs(labels[i]-outputs[i])
-                        
-                        if phase == 'train':
-                            loss.backward()
-                            optimizer.step()
-                    example_ct += len(inputs)
-                    batch_ct += 1
-                    #correct = torch.sum(predictions == labels.data).detach().cpu().numpy()
-                    #accuracy = correct / config.batch_size
-                    accuracy=1.0/loss
-                    running_loss += loss.item() * inputs.size(0)
-                    running_corrects += accuracy
-                    num_examples += inputs.shape[0]
-                    tepoch.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
-                    train_log(loss, accuracy, example_ct, epoch, phase == 'train')
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward
+                # track history if only in train
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(inputs)
+                    #_, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+
+                    # backward + optimize only if in training phase
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+
+                # statistics
+                running_loss+=loss
+                #running_loss += loss.item() * inputs.size(0)
+                #running_corrects += torch.sum(preds == labels.data)
             if phase == 'train':
                 scheduler.step()
-            #epoch_acc = running_corrects / num_examples
-            epoch_acc=running_corrects/num_examples
+
+            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_acc = 1-epoch_loss#running_corrects.double() / dataset_sizes[phase]
+
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+                str(phase), float(epoch_loss), float(epoch_acc)))
+
+            # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+
+        print()
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(float(best_acc)))
+
+    # load best model weights
     model.load_state_dict(best_model_wts)
     return model
 
-if __name__ == "__main__":
-    #start program:
-    config = Config()
-    data_transform = transforms.Compose([
-        transforms.CenterCrop(488),
-        transforms.Resize(224),
-        transforms.ToTensor()#,
-        #transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #                      std=[0.229, 0.224, 0.225]) #jak to dziala
-    ])
-    print("data_transform", data_transform)
-   
-    dataloaders = prepare_data(config, data_transform)
-    
-    #for key in dataloaders.keys:
-    #    print(key)
-    print("list(dataloaders)", list(dataloaders))
+##!!!!!!!!!!!!___Finetuining the convent______!!!!!!!!!!!
+model_ft = models.resnet18(pretrained=True)
+num_ftrs = model_ft.fc.in_features
+# Here the size of each output sample is set to 2.
+# Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
+model_ft.fc = nn.Linear(num_ftrs, 1)
 
-    model = models.resnet18(pretrained=True)
-    model, criterion, optimizer, scheduler = prepare_model(model, config)
-    # with wandb.init(project="CellPainting", config=config.__dict__):
-    model = train(model, criterion, optimizer, scheduler, dataloaders, config)
+model_ft = model_ft.to(device)
+
+#criterion = nn.CrossEntropyLoss()
+
+# Observe that all parameters are being optimized
+#optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.003, momentum=0.9)
+
+
+# Decay LR by a factor of 0.1 every 7 epochs
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+#print((dataloaders['train'])[0])
+
+
+##!!!!!!!!!!!!___Execute train model______!!!!!!!!!!!
+model_ft = train_model(model_ft, customLossFunction, optimizer_ft, exp_lr_scheduler, num_epochs=config.epochs)
+
+
+
+
 
 

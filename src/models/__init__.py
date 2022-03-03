@@ -10,6 +10,6 @@ class Config:
         self.momentum = 0.9
         self.step_size = 3
         self.gamma = 0.1
-        self.dataset_metadata = "data/raw/1channel/reference/epsilon.csv" # will change for processed
+        self.dataset_metadata = "../../data/raw/1channel/reference/epsilon.csv" # will change for processed
         self.num_workers = 0
-        self.data_root_dir = "data/raw/1channel/photo" # will change for processed
+        self.data_root_dir = "../../data/raw/1channel/photo" # will change for processed
