@@ -1,7 +1,22 @@
-from IPython.display import clear_output 
-clear_output()
+# This is a sample Python script.
 
-from __future__ import print_function, division
+# Press Shift+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+
+def print_hi(name):
+    # Use a breakpoint in the code line below to debug your script.
+    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    print_hi('PyCharm')
+
+print('something more')
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+#import numpy as np
 
 import torch
 import torch.nn as nn
@@ -11,7 +26,6 @@ import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import time
 import os
 import copy
@@ -19,42 +33,146 @@ import pandas as pd
 import cv2
 import PIL
 import math
+import matplotlib.image as mpimg
+from pathlib import Path
+import logging
 
-#for test - number of the photo loaded
-photoLoadedNo = 0
+###############################################################################################
+class PathManagement:
+    def __init__(self):
+        self.__cloud_path_prefix = "/content/drive/My Drive/"
+        #########___Data PATH___##############
+        # FOR LOCAL DATA:
+        # --REAL DATA:
+        self._localDataset_metadata = "../data/raw/1channel/reference/epsilon.csv"
+        self._localData_root_dir = "../data/raw/1channel/photo/"
+        # --SELF-GENERATED DATA:
+        # ----UNNOISED
+        self._localData_metadata_generated_unnoised = "../data/generated/unnoised/reference/epsilon.csv"
+        self._localData_root_dir_generated_unnoised = "../data/generated/unnoised/photo/"
+        # ----NOISED
+        self._localData_metadata_generated_noised = "../data/generated/unnoised/reference/epsilon.csv"
+        self._localData_root_dir_generated_noised = "../data/generated/unnoised/photo/"
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # ON DRIVE:
+        # --REAL DATA:
+        self._cloudDataset_metadata = self.__cloud_path_prefix + "data/reference/real/epsilon_short.csv"
+        self._cloudData_root_dir = self.__cloud_path_prefix + "data/photo/real/"
+        # --SELF-GENERATED DATA:
+        # ----UNNOISED
+        self._cloudData_metadata_generated_unnoised = self.__cloud_path_prefix + "data/reference/generated/unnoised/epsilon.csv"
+        self._cloudData_root_dir_generated_unnoised = self.__cloud_path_prefix + "data/photo/generated/unnoised/"
+        # ----NOISED
+        self._cloudData_metadata_generated_noised = self.__cloud_path_prefix + "data/reference/generated/noised/epsilon.csv"
+        self._cloudData_root_dir_generated_noised = self.__cloud_path_prefix + "data/photo/generated/noised/"
+
+        #########___Model PATH___##############
+        self.__path_save_model_cloud = self.__cloud_path_prefix + "data/models/"
+        self.__path_save_model_local = "../models/"
+
+    def dataPath(self, dataPlace="local", dataType="original", isNoise=True):
+        """! define correct data path using parameters
+
+        @param dataPlace  data place can be 'local' or 'cloud'.
+        @param dataType   data type can be 'original' or 'generated'.
+        @param isNoise    only used in case of generated dataType.
+
+        @return 2 path --> 1. with methadata, 2. with photo
+        """
+        if dataPlace == 'local':
+            if dataType == 'original':
+                return self._localDataset_metadata, self._localData_root_dir
+            elif dataType == 'generated':
+                if isNoise == False:
+                    return self._localData_metadata_generated_unnoised, self._localData_root_dir_generated_unnoised
+                else:
+                    return self._localData_metadata_generated_noised, self._localData_root_dir_generated_noised
+            else:
+                return False
+        elif dataPlace == 'cloud':
+            if dataType == 'original':
+                return self._cloudDataset_metadata, self._cloudData_root_dir
+            elif dataType == 'generated':
+                if isNoise == False:
+                    return self._cloudData_metadata_generated_unnoised, self._cloudData_root_dir_generated_unnoised
+                else:
+                    return self._cloudData_metadata_generated_noised, self._cloudData_root_dir_generated_noised
+            else:
+                return False
+        else:
+            return False
+
+    def modelSavePath(self, dataPlace="local"):
+        """! define model save path depending on the save location
+
+        @param dataPlace  data place can be 'local' or 'cloud'.
+
+        @return model save path
+        """
+        if dataPlace == "local":
+            return self.__path_save_model_local
+        elif dataPlace == "cloud":
+            return self.__path_save_model_cloud
+        else:
+            return False
+
+########################################################################################################
+
+pathManagement=PathManagement()
+
+########################################################################################################
 
 class Config:
     def __init__(self):
-        self.epochs = 25
-        self.cuda=True
-        self.num_classes = 1
-        self.batch_size = 4
-        self.learning_rate = 0.01
+        # Variables to edit
+        self.epochs = 20  # number of epochs
+        self.num_classes = 1  # num classes in dataset
+        # todo zwiekszyc batch_size -> 16 -> 32
+        self.batch_size = 4  # batch size used for training (e.g. bath_size photos in one process)
+        # todo sprawdzic Adama
+        self.learning_rate = 0.001  # for SGD = 0.01, for Adam = 10^-4 -- 10^-3
+        self.train_size = 0.8
         self.dataset = "InterferometerPhoto"
-        #self.architecture = "CNN"
+        # self.architecture = "CNN"
         self.pin_memory = True
-        self.momentum = 0.9
-        self.step_size = 3
+        self.momentum = 0.9  # do Adama
+        self.step_size = 7
         self.gamma = 0.1
-        self.dataset_metadata = "../../data/raw/1channel/reference/epsilon.csv" # will change for processed
         self.num_workers = 0
-        self.data_root_dir = "../../data/raw/1channel/photo" # will change for processed
+        self.model_name_to_save = "model_no_1.pth"
+        self.data_place = "cloud"  # ="local"
         self.data_transforms = transforms.Compose([
-                #transforms.CenterCrop(448),
-                #transforms.Resize(224),#############################Lub od razu centercrop(224)
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.491, 0.491, 0.491],
-                                      std=[0.210, 0.210, 0.210]) 
-                #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
+            transforms.CenterCrop(448),
+            transforms.Resize(224),  # first way is crop and later resize. Second way is CenterCrop right away.
+            # transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.491, 0.491, 0.491],
+                                 std=[0.210, 0.210, 0.210])])
+        self._cuda = True  # GPU = True, CPU = False
+
+        # variables not to edit here. You Can edit path in PathManagement Class.
+        self.dataset_metadata, self.data_root_dir = pathManagement.dataPath(dataPlace=self.data_place,
+                                                                            dataType="original",
+                                                                            isNoise=True)
+
+        # additional
+        self.debug_mode = False
+
+    def device(self):
+        if self._cuda == True:
+            return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        else:
+            return "cpu"
+
+######################################################################################################
+
+config=Config()
+
+######################################################################################################
 
 class EpsilonDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir, annotation_file, transform=None):
         self.root_dir = root_dir
-        #self.annotations = pd.read_csv(annotation_file,skiprows=1)
         self.annotations = pd.read_csv(annotation_file,skiprows=0, delim_whitespace=' ')
         self.transform = transform
 
@@ -69,90 +187,101 @@ class EpsilonDataset(torch.utils.data.Dataset):
             img = self.transform(img)
         return img, y_label
 
+############################################################################################################
+
 def prepare_data(config):
-    #dataset --> Photos from interferometer
+    # create time logger:
+    logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+                        level=50)  # 50 - critical, 40 - error, 30 - warning, 20 - info, 10 - debug, 0 - notset
+    logging.debug('1. Start prepare_data')
+
     dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
 
-    g = torch.Generator(device=device).manual_seed(0)
-    datasetLen=dataset.__len__()
-    trainLen=int(0.8*datasetLen)
-    valLen=int(0.2*datasetLen)
-    testLen=int(0.0*datasetLen)
+    g = torch.Generator(device=device).manual_seed(23)
+    train_size = int(config.train_size * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size], generator=g)
 
-    mean=0
-    std=0
-    trainSize=0.8
-    valSize=0.2
-    trainIndex, valIndex, testIndex=[],[],[]
+    print("len(train_dataset):", len(train_dataset), "len(val_dataset):", len(val_dataset))
 
-    for i in range (datasetLen):
-        randomNumber=np.random.rand()
-        #print(randomNumber)
-        if(randomNumber<trainSize): trainIndex.append(i)
-        else: valIndex.append(i)
-        img,epsilon=dataset[i]
-        img=np.array(img)
-        mean+=np.mean(img)
-        std+=np.std(img)
-         
-    valIndex=trainIndex
+    loader_params = dict(batch_size=config.batch_size, num_workers=config.num_workers,
+                         pin_memory=config.pin_memory, generator=g, shuffle=True)
 
-    mean=mean/datasetLen#/255
-    std=std/datasetLen#/255
-    #print("mean, std:",mean, std)
-    #trainIndex=valIndex
-    #testIndex=valIndex
-    loader_params = dict(dataset=dataset, batch_size=config.batch_size, num_workers=config.num_workers,
-                         pin_memory=config.pin_memory, generator=g, shuffle=False)
-    train_loader = torch.utils.data.DataLoader(**loader_params, sampler=trainIndex )
-    validation_loader = torch.utils.data.DataLoader(**loader_params, sampler=valIndex )
-    test_loader = torch.utils.data.DataLoader(**loader_params, sampler=testIndex)
-    return {'train': train_loader, 'val': validation_loader, 'test': test_loader}
+    train_loader = torch.utils.data.DataLoader(**loader_params, dataset=train_dataset)
+    validation_loader = torch.utils.data.DataLoader(**loader_params, dataset=val_dataset)
 
+    return {'train': train_loader, 'val': validation_loader}
 
-##!!!!!!!!!!!!___LOAD_DATA______!!!!!!!!!!!
-config=Config()
+#########################################################################################################
 
+#import data from drive
+from google.colab import drive
+drive.mount('/content/drive')
 
-#image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-#                                          data_transforms[x])
-#                  for x in ['train', 'val']}
+#test connection:
+img = mpimg.imread(config.data_root_dir + '03400.png') #test display img')
+imgplot = plt.imshow(img)
+plt.show()
+
+##########################################################################################################
+
+device = "cpu" #first calculations will be on CPU
+
 dataloaders = prepare_data(config)
 dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
-#class_names = image_datasets['train'].classes
 
+dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
+
+train_features, train_labels=next(iter(dataloaders["train"]))
 
 print("Device: ", device)
 print("Dataloader train len: ", len(dataloaders["train"]), "val len: ", len(dataloaders["val"]))
 
-##!!!!!!!!!!!!___Training the model______!!!!!!!!!!!
-def customLossFunction(outputs, labels):
-    totalLoss=0.0
-    #print(len(outputs))
-    for i in range (len(outputs)):
-        loss=min(abs(labels[i]%1-outputs[i]%1), 1-abs(labels[i]%1-outputs[i]%1))
-        totalLoss+=loss
-        #totalLoss=(100*loss)*(100*loss)
-    totalLoss/=len(outputs)
-    #totalLoss=math.sqrt(totalLoss)
+########################################################################################################
+
+device = config.device() #another calculations with default
+print("Device: ", device)
+
+########################################################################################################
+
+def customLossFunctionDebug(outputs, labels, totalLoss):
+    print("NextOne")
+    for i in range(len(outputs)):
+        print("i: ", i, "label: ", float(labels[i]), "output:", float(outputs[i]), "diff= ",
+              float(min(abs(abs(labels[i]) - abs(outputs[i])), abs(1 - (abs(labels[i]) - abs(outputs[i]))))))
+
+    print("totalLoss:", float(totalLoss))
     return totalLoss
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
-    since = time.time()
 
+def customLossFunction(outputs, labels):
+    totalLoss = 0.0
+    for i in range(len(outputs)):
+        # oneOutputLoss= abs(abs(labels[i])-(outputs[i]))
+        # oneOutputLoss=min( abs(abs(labels[i])-abs(outputs[i])) , abs(1-(abs(labels[i])-abs(outputs[i]))))
+        oneOutputLoss = torch.min(torch.abs(torch.abs(labels[i]) - torch.abs(outputs[i])),
+                                  torch.abs(1 - (torch.abs(labels[i]) - torch.abs(outputs[i]))))
+        totalLoss += oneOutputLoss
+    totalLoss /= len(outputs)
+    # customLossFunctionDebug(outputs=outputs, labels=labels, totalLoss=totalLoss)
+    return totalLoss
+
+
+def train_model(model, criterion, optimizer, scheduler, num_epochs):
+    since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    best_acc = -100000
 
     for epoch in range(num_epochs):
+
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
             running_corrects = 0
@@ -165,11 +294,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
-                # forward
-                # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
-                    #_, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
 
                     # backward + optimize only if in training phase
@@ -178,14 +304,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         optimizer.step()
 
                 # statistics
-                running_loss+=loss
-                #running_loss += loss.item() * inputs.size(0)
-                #running_corrects += torch.sum(preds == labels.data)
+                running_loss += loss
+
             if phase == 'train':
                 scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = 1-epoch_loss#running_corrects.double() / dataset_sizes[phase]
+            # print("epoch_loss: ", epoch_loss, "running_loss: ", running_loss, "dataset_sizes[phase]: ", dataset_sizes[phase])
+            epoch_acc = 1 - epoch_loss
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 str(phase), float(epoch_loss), float(epoch_acc)))
@@ -206,32 +332,194 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     model.load_state_dict(best_model_wts)
     return model
 
-##!!!!!!!!!!!!___Finetuining the convent______!!!!!!!!!!!
+############################################################################################################
+
+device = config.device()
 model_ft = models.resnet18(pretrained=True)
+#todo mozna sprobowac wiekszego resneta
+#todo najpierw uczy sie siec zamrozona i na poczatku uczy sie tylko ostatnie
+#     warstwy i dopiero jak dobrze pojdzie to odmrazamy
 num_ftrs = model_ft.fc.in_features
-# Here the size of each output sample is set to 2.
-# Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
 model_ft.fc = nn.Linear(num_ftrs, 1)
 
 model_ft = model_ft.to(device)
 
-#criterion = nn.CrossEntropyLoss()
-
 # Observe that all parameters are being optimized
-#optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.003, momentum=0.9)
+optimizer_ft = optim.SGD(model_ft.parameters(), lr=config.learning_rate, momentum=config.momentum)
 
 
 # Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
 #print((dataloaders['train'])[0])
 
+#####################################################################################################
 
-##!!!!!!!!!!!!___Execute train model______!!!!!!!!!!!
-model_ft = train_model(model_ft, customLossFunction, optimizer_ft, exp_lr_scheduler, num_epochs=config.epochs)
+model_ft = train_model(model=model_ft, criterion=customLossFunction, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
+                       num_epochs=config.epochs)
+
+#####################################################################################################
+
+def saveModel(model, modelName):
+    """! function to save model
+
+    @param model        model to save
+    @param modelName    name of model - prefered pith *.pth
+    """
+    tempPathToSave = pathManagement.modelSavePath(dataPlace=config.data_place) + modelName  # path to save
+
+    torch.save(model_ft, tempPathToSave)
+    # torch.save(model.state_dict(), tempPathToSave)
+
+    print("model saved: " + config.data_place)
+
+##################################################################################################
+
+modelName = "3_model_0_9739.pth"
+
+saveModel(model=model_ft, modelName = config.model_name_to_save)
+
+###################################################################################################
+
+#state_dict = torch.load(pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save) #to check, is everything ok
+tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save
+
+state_dict = torch.load(tempPathToLoad, map_location=device)
+
+del tempPathToLoad
+#print(state_dict.keys())
+
+###################################################################################################
+
+device="cpu"
+#model_ft = models.resnet18(pretrained=True)
+#num_ftrs = model_ft.fc.in_features
+#model_ft.fc = nn.Linear(num_ftrs, 1)
+#
+#model_ft = model_ft.to(device)
+#model_ft.load_state_dict(torch.load('Conv_RealPhotos_0_9745.pht'))
+tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #temporary path
+model_ft2=torch.load(tempPathToLoad)
+del tempPathToLoad
+model_ft2.eval()
+dataloaders = prepare_data(config)
+device="cuda"
+allDiffs=0.0
+j=0
+for images, labels in dataloaders['val']:
+    images, labels = images.cuda(), labels.cuda()
+    outputs=model_ft2(images)
+    for i in range(len(outputs)):
+        diff=abs(float(labels[i]-outputs[i]))
+        allDiffs+=diff
+        j+=1
+        if (j%100==0): print(j, "mean:", allDiffs/j)
+        #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
+
+print("mean", allDiffs/j)
+
+##################################################################################################
+
+##### with printing charts
+class Stats:
+    class Bin:
+        def __init__(self):
+            self.value = 0
+            self.count = 0
+
+    def __init__(self, binCount):
+        self.binAmmount = binCount
+        self.bin = self.Bin()
+        self.bins = []
+
+        for i in range(self.binAmmount):
+            internalBin = self.Bin()
+            self.bins.append(internalBin)
+
+    def CreateBins(self):
+        for i in range(self.binAmmount):
+            internalBin = self.Bin()
+            self.bins.append(internalBin)
+
+    def AddCalculation(self, epsilon, error):
+        # print(len(self.bins), int(epsilon/(1/self.binAmmount)), epsilon, error)
+        self.bins[int(epsilon / (1 / self.binAmmount))].value += error
+        self.bins[int(epsilon / (1 / self.binAmmount))].count += 1
 
 
+device = "cpu"
 
+tempPathToLoad = pathManagement.modelSavePath(dataPlace=config.data_place) + config.model_name_to_save  # temporary path
 
+model_ft2 = torch.load(tempPathToLoad)
 
+del tempPathToLoad
 
+model_ft2.eval()
+
+config.batch_size = 1
+dataloaders = prepare_data(config)
+device = "cuda"
+allDiffs = 0.0
+stats = Stats(100)
+j = 0
+
+numberOfSamples = np.zeros([100, 1], dtype=int)  # .
+minError = np.ones([100, 1], dtype=float)  # .
+maxError = np.zeros([100, 1], dtype=float)  # .
+tempBinNumber = 0  # .
+
+for images, labels in dataloaders['val']:
+    images, labels = images.cuda(), labels.cuda()
+    outputs = model_ft2(images)
+    for i in range(len(outputs)):
+        diff = min(abs(1 - abs(float(labels[i] - outputs[i]))), abs(float(labels[i] - outputs[i])))
+        label = copy.deepcopy(float(labels[i]))
+        output = copy.deepcopy(float(outputs[i]))
+        allDiffs += diff
+        j += 1
+        stats.AddCalculation(label, diff)
+        # print("label: ", label,"diff: ", diff) #.
+        tempBinNumber = int(label * 1000 // 10)  # .
+        numberOfSamples[tempBinNumber] = numberOfSamples[tempBinNumber] + 1  # .
+        if minError[tempBinNumber] > diff:
+            minError[tempBinNumber] = diff
+        if maxError[tempBinNumber] < diff:
+            maxError[tempBinNumber] = diff
+
+        if (j % 100 == 0): print(j, "mean:", allDiffs / j)
+        # print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
+
+        # plt.imshow(images)
+        # plt.show
+        # out1 = torchvision.utils.make_grid(inputs)
+        # imshow(out1,"abc")
+
+# print(numberOfSamples) #.
+x = []
+y = []
+
+for i in range(len(stats.bins)):
+    x.append(1 / stats.binAmmount * i)
+    if (stats.bins[i].count == 0):
+        y.append(0)
+    else:
+        y.append(stats.bins[i].value / stats.bins[i].count)
+        print(stats.bins[i].value / stats.bins[i].count)
+plt.plot(x, y)
+plt.title(modelName)
+plt.xlabel("Epsilon")
+plt.ylabel("EpsilonError")
+plt.show()
+
+plt.plot(x, numberOfSamples)  # .
+plt.ylabel('number of samples')  # .
+plt.show()  # .
+
+plt.plot(x, minError)  # .
+plt.ylabel('min error')  # .
+plt.show()  # .
+
+plt.plot(x, maxError)  # .
+plt.ylabel('max error')  # .
+plt.show()  # .
+# print("mean", allDiffs/j)
