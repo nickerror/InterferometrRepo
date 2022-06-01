@@ -1,8 +1,8 @@
 from email.policy import default
 import logging
 import torch.utils
-from EpsilonDataset import EpsilonDataset
-from PathManagement import PathManagement as pathManagement
+from model_functions.EpsilonDataset import EpsilonDataset
+from model_functions.PathManagement import PathManagement as pathManagement
 
 def prepare_data(config, train = True):
     #create time logger:

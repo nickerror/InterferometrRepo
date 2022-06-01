@@ -20,11 +20,11 @@ from pathlib import Path
 import logging
 
 #########################_import_own_functions_####################################
-from PathManagement import PathManagement
-from Config import Config
-from EpsilonDataset import EpsilonDataset
-from data_for_model import prepare_data, saveModel
-from loss_function import customLossFunction, singleCustomLossFunction
+from model_functions.PathManagement import PathManagement
+from model_functions.Config import Config
+from model_functions.EpsilonDataset import EpsilonDataset
+from model_functions.data_for_model import prepare_data, saveModel
+from model_functions.loss_function import custom_loss_function, singleCustomLossFunction
 
 ######################################################################################################
 
@@ -130,13 +130,18 @@ optimizer_ft = optim.SGD(model_ft.parameters(), lr=config.learning_rate, momentu
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
 
 #####################################################################################################
-model_ft = train_model(model=model_ft, criterion=customLossFunction, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
+model_ft = train_model(model=model_ft, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
                        num_epochs=config.epochs)
 
 #####################################################################################################
 
 saveModel(model=model_ft, config=config)
 ###################################################################################################
+
+
+
+#########################____TESTOWANIE___########################################################
+######################____DO_POSPRZĄTANIA___######################################################
 
 #state_dict = torch.load(pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save) #to check, is everything ok
 tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save
@@ -147,8 +152,7 @@ del tempPathToLoad
 #print(state_dict.keys())
 
 
-#########################____TESTOWANIE___########################################################
-######################____DO_POSPRZĄTANIA___######################################################
+
 device="cpu"
 #model_ft = models.resnet18(pretrained=True)
 #num_ftrs = model_ft.fc.in_features
