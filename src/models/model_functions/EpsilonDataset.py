@@ -26,34 +26,6 @@ class EpsilonDataset(torch.utils.data.Dataset):
             img = self.transform(img)
         return img, y_label
 
-# def tensor_to_image(tensor):
-#     tensor = tensor*255
-#     tensor = np.array(tensor, dtype=np.uint8)
-#     if np.ndim(tensor)>3:
-#         assert tensor.shape[0] == 1
-#         tensor = tensor[0]
-#     return PIL.Image.fromarray(tensor)
-
-
-# if __name__ == "__main__":
-#     config=Config()
-#     data_transform = transforms.Compose([
-#     transforms.CenterCrop(488),
-#     transforms.Resize(224),
-#     transforms.ToTensor()#,
-#     #transforms.Normalize(mean=[0.485, 0.456, 0.406],
-#     #                      std=[0.229, 0.224, 0.225]) #jak to dziala
-#     ])
-#     dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, data_transform)
-#     #print(np.array(cv2.imread(os.path.join(dataset.root_dir, str(str("%05d" %dataset.annotations.imgnr[0]))+ ".png"))))
-#     #print(os.path.join(dataset.root_dir, str(str("%05d" %dataset.annotations.imgnr[0])+".png")))
-#     #print(dataset.annotations.imgnr[1])
-#     img,label=dataset[0]
-#     print(label)
-#     print(img.shape)
-#     #img=tensor_to_image(img)
-    
-#     #img.show()
     
     
 

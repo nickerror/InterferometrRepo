@@ -60,11 +60,13 @@ def saveModel(model,config, model_name = "default"):
     
     print("model saved: " + config.data_place)
 
-def import_data_form_cloud():
+def import_data_form_cloud(config ):
     #import data from google drive
-    from google.colab import drive
+    import matplotlib.image as mpimg
+    # from google.colab import drive
+    # drive.mount('/content/drive')
     from matplotlib import pyplot as plt
-    drive.mount('/content/drive')
+    
 
     #test connection:
     img = mpimg.imread(config.data_root_dir + '03400.png') #test display img')
