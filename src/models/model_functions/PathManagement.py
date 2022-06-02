@@ -31,7 +31,7 @@ class PathManagement:
 
         #########___Model PATH___##############
         self.__path_save_model_cloud = self.__cloud_path_prefix + "data/models/"
-        self.__path_save_model_local = "../models/"
+        self.__path_save_model_local = "../../models/"
 
     def dataPath(self, dataPlace = "local", dataType = "original", isNoise = True):
         """! define correct data path using parameters

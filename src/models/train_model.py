@@ -24,7 +24,7 @@ from model_functions.PathManagement import PathManagement
 from model_functions.Config import Config
 from model_functions.EpsilonDataset import EpsilonDataset
 from model_functions.data_for_model import prepare_data, saveModel
-from model_functions.loss_function import custom_loss_function, singleCustomLossFunction
+from model_functions.loss_function import custom_loss_function, single_custom_loss_function
 
 ######################################################################################################
 
