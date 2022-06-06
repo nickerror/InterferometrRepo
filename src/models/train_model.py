@@ -9,15 +9,7 @@ import torchvision
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import time
-import os
 import copy
-import pandas as pd
-import cv2
-import PIL
-import math
-import matplotlib.image as mpimg
-from pathlib import Path
-import logging
 
 #########################_import_own_functions_####################################
 from model_functions.PathManagement import PathManagement
@@ -67,7 +59,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
 
             # Iterate over data.
             for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(config.decive())
+                inputs = inputs.to(config.device())
                 labels = labels.to(config.device())
 
                 # zero the parameter gradients
@@ -109,6 +101,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
 
     # load best model weights
     model.load_state_dict(best_model_wts)
+    torch.save(model,"model_temp")
     return model
 
 ############################################################################################################

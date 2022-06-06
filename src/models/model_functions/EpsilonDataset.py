@@ -7,7 +7,6 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 #from tifffile import imread
 import PIL
-from __init__ import Config
 
 class EpsilonDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir, annotation_file, transform=None):

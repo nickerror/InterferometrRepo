@@ -8,13 +8,19 @@ class PathManagement:
         self._localData_root_dir = "../../data/raw/1channel/photo/"
         #--SELF-GENERATED DATA:
         #----UNNOISED
-        self._localData_metadata_generated_unnoised = "../../data/generated/unnoised/reference/epsilon.csv"
-        self._localData_root_dir_generated_unnoised = "../data/generated/unnoised/photo/"
+        self._localData_metadata_generated_unnoised = "../../data/generated/unnoised/reference/training/epsilon.csv"
+        self._localData_root_dir_generated_unnoised = "../../data/generated/unnoised/photo/training/"
         #----NOISED
         self._localData_metadata_generated_noised = "../../data/generated/noised/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_noised = "../../data/generated/noised/photo/training"
-        self._localData_metadata_generated_noised_test = "../../data/generated/noised/reference/test/epsilon.csv"
-        self._localData_root_dir_generated_noised_test = "../../data/generated/noised/photo/test"
+        self._localData_root_dir_generated_noised = "../../data/generated/noised/photo/training/"
+
+        #--TEST
+        #----NOISED
+        #self._localData_metadata_test = "../../data/generated/noised/reference/test/epsilon.csv"
+        #self._localData_root_dir_test = "../../data/generated/noised/photo/test"
+        #----UNNOISED
+        self._localData_metadata_test = "../../data/generated/unnoised/reference/test/epsilon.csv"
+        self._localData_root_dir_test = "../../data/generated/unnoised/photo/test"
 
         #ON DRIVE:
         #--REAL DATA:
@@ -66,7 +72,7 @@ class PathManagement:
           return False
 
     def dataPathTest(self):
-        return self._localData_metadata_generated_noised_test, self._localData_root_dir_generated_noised_test
+        return self._localData_metadata_test, self._localData_root_dir_test
 
     def modelSavePath(self, dataPlace = "local"):
         """! define model save path depending on the save location

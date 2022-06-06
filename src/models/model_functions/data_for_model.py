@@ -2,7 +2,8 @@ from email.policy import default
 import logging
 import torch.utils
 from model_functions.EpsilonDataset import EpsilonDataset
-from model_functions.PathManagement import PathManagement as pathManagement
+from model_functions.PathManagement import PathManagement
+from model_functions.Config import Config
 
 def prepare_data(config, train = True):
     #create time logger:
@@ -42,7 +43,6 @@ def prepare_data(config, train = True):
         
         return {'test': test_loader}
     
-
 def saveModel(model,config, model_name = "default"):
     """! function to save model
     
@@ -50,6 +50,7 @@ def saveModel(model,config, model_name = "default"):
     @patam config       config object from Config class
     @param model_name   name of model - prefered pith *.pth. If "default" then name from config.
     """
+    pathManagement = PathManagement()
     if model_name == "default":
         tempPathToSave = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #path to save
     else:
@@ -72,3 +73,4 @@ def import_data_form_cloud(config ):
     img = mpimg.imread(config.data_root_dir + '03400.png') #test display img')
     imgplot = plt.imshow(img)
     plt.show()
+

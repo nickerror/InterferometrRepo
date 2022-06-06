@@ -18,7 +18,7 @@ class Config:
         self.step_size = 7
         self.gamma = 0.1
         self.num_workers = 0
-        self.model_name_to_save = "1_generated_972997.pth"
+        self.model_name_to_save = "1_generated_unnoised.pth"
         self.model_name_to_read = "1_generated_972997.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
@@ -33,7 +33,7 @@ class Config:
         #variables not to edit here. You Can edit path in PathManagement Class.
         self.dataset_metadata, self.data_root_dir = pathManagement.dataPath(dataPlace = self.data_place, 
                                                                             dataType = "generated", 
-                                                                            isNoise = True)
+                                                                            isNoise = False)
 
         self.dataset_metadata_test, self.data_root_dir_test = pathManagement.dataPathTest()
         

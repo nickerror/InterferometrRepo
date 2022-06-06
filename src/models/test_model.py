@@ -9,23 +9,32 @@ from model_functions.data_for_model import prepare_data
 pathManagement=PathManagement()
 config=Config(pathManagement)
 
-######################################################################################################################################
+
+
+###################################################################################################################
+device="cpu"
 
 tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #temporary path
+print(tempPathToLoad)
 model_ft2=torch.load(tempPathToLoad)
+del tempPathToLoad
 model_ft2.eval()
-#dataloaders = prepare_data(config)
 dataloaders = prepare_data(config, train=False)
-print("Dataloader test len: ", len(dataloaders["test"]))
-
+device="cuda"
 allDiffs=0.0
 j=0
+
+
+#############################_TEST_TIME_#################################################
+
 for images, labels in dataloaders['test']:
     images, labels = images.cuda(), labels.cuda()
     outputs=model_ft2(images)
     for i in range(len(outputs)):
-        diff=abs(float(labels[i]-outputs[i]))
-        allDiffs+=diff
+        #diff=abs(float(labels[i]-outputs[i]))
+        #diff=singleCustomLossFunction(outputs[i], labels[i])
+        diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
+        allDiffs+=float(diff)
         j+=1
         if (j%100==0): print(j, "mean:", allDiffs/j)
         #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
@@ -33,42 +42,6 @@ for images, labels in dataloaders['test']:
 print("mean", allDiffs/j)
 
 if False:
-    ###################################################################################################################
-    device="cpu"
-    #model_ft = models.resnet18(pretrained=True)
-    #num_ftrs = model_ft.fc.in_features
-    #model_ft.fc = nn.Linear(num_ftrs, 1)
-    #
-    #model_ft = model_ft.to(device)
-    #model_ft.load_state_dict(torch.load('Conv_RealPhotos_0_9745.pht'))
-
-    tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #temporary path
-    print(tempPathToLoad)
-    model_ft2=torch.load(tempPathToLoad)
-    del tempPathToLoad
-    model_ft2.eval()
-    dataloaders = prepare_data(config, train=False)
-    device="cuda"
-    allDiffs=0.0
-    j=0
-
-
-    ######################################################################################################################
-
-    for images, labels in dataloaders['test']:
-        images, labels = images.cuda(), labels.cuda()
-        outputs=model_ft2(images)
-        for i in range(len(outputs)):
-            #diff=abs(float(labels[i]-outputs[i]))
-            #diff=singleCustomLossFunction(outputs[i], labels[i])
-            diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
-            allDiffs+=float(diff)
-            j+=1
-            if (j%100==0): print(j, "mean:", allDiffs/j)
-            #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
-
-    print("mean", allDiffs/j)
-
     #############################################_charts etc_##############################################################
     ##### with printing charts
     class Stats:
