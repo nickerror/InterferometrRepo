@@ -20,7 +20,7 @@ class PathManagement:
         #self._localData_root_dir_test = "../../data/generated/noised/photo/test"
         #----UNNOISED
         self._localData_metadata_test = "../../data/generated/unnoised/reference/test/epsilon.csv"
-        self._localData_root_dir_test = "../../data/generated/unnoised/photo/test"
+        self._localData_root_dir_test = "../../data/generated/unnoised/photo/test/"
 
         #ON DRIVE:
         #--REAL DATA:

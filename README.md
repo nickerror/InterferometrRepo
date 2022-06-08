@@ -9,8 +9,28 @@ Project Organization
     ├── LICENSE
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
+    ├── data               <- !!!! All data is not on repo!
+    │   ├── raw            <- Data from third party sources.
+    |   |    └── 1chanel
+    |   |       ├── photo
+    |   |       └── reference
+    |   ├── generated
+    |   |   ├── noise
+    |   |   |   ├── photo  <- photo with noise only
+    |   |   ├── noised
+    |   |   |   ├── photo
+    |   |   |   |   ├── test        <- generated photo with noise for test only
+    |   |   |   |   └── training    <- generated photo with noise for training and validation
+    |   |   |   ├── reference
+    |   |   |   |   ├── test        <- folder with epsilon.csv for noised tests
+    |   |   |   |   └── training    <- folder with epsilon.csv for noised taining
+    |   |   └── unnoised
+    |   |       ├── photo
+    |   |       |   ├── test        <- generated photo with noise for test only (from 07000.png to 09999.png)
+    |   |       |   └── training    <- generated photo with noise for training and validation (from 00000.png to 06999.png)
+    |   |       └── reference
+    |   |           ├── test        <- folder with epsilon.csv for noised tests
+    |   |           └── training    <- folder with epsilon.csv for noised taining
     │   ├── interim        <- Intermediate data that has been transformed.
     │   ├── processed      <- The final, canonical data sets for modeling.
     │   └── raw            <- The original, immutable data dump.

@@ -19,7 +19,7 @@ class Config:
         self.gamma = 0.1
         self.num_workers = 0
         self.model_name_to_save = "1_generated_unnoised.pth"
-        self.model_name_to_read = "1_generated_972997.pth"
+        self.model_name_to_read = "1_generated_unnoised.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
                         transforms.CenterCrop(448),
@@ -39,7 +39,7 @@ class Config:
         
         #additional
         self.debug_mode = False
-
+    
     def device(self):
         if self._cuda == True:
             return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

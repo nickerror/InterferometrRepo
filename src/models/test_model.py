@@ -14,7 +14,7 @@ config=Config(pathManagement)
 ###################################################################################################################
 device="cpu"
 
-tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #temporary path
+tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_read #temporary path
 print(tempPathToLoad)
 model_ft2=torch.load(tempPathToLoad)
 del tempPathToLoad
