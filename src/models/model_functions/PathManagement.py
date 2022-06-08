@@ -13,6 +13,9 @@ class PathManagement:
         #----NOISED
         self._localData_metadata_generated_noised = "../../data/generated/noised/reference/training/epsilon.csv"
         self._localData_root_dir_generated_noised = "../../data/generated/noised/photo/training/"
+        #----MIXED
+        self._localData_metadata_generated_mixed = "../../data/generated/mixed/reference/training/epsilon.csv"
+        self._localData_root_dir_generated_mixed = "../../data/generated/mixed/photo/training/"
 
         #--TEST
         #----NOISED
@@ -46,7 +49,7 @@ class PathManagement:
         """! define correct data path using parameters
         
         @param dataPlace  data place can be 'local' or 'cloud'.
-        @param dataType   data type can be 'original' or 'generated'.
+        @param dataType   data type can be 'original' or 'generated' or 'mixed'.
         @param isNoise    only used in case of generated dataType.
 
         @return 2 path --> 1. with methadata, 2. with photo
@@ -59,6 +62,8 @@ class PathManagement:
                     return self._localData_metadata_generated_unnoised, self._localData_root_dir_generated_unnoised
                 else:
                     return self._localData_metadata_generated_noised, self._localData_root_dir_generated_noised
+            elif dataType == 'mixed':
+                return self._localData_metadata_generated_mixed, self._localData_root_dir_generated_mixed
             else:
                 return False
         elif dataPlace == 'cloud':
