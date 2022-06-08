@@ -4,8 +4,8 @@ class PathManagement:
         #########___Data PATH___##############
         #FOR LOCAL DATA:
         #--REAL DATA:
-        self._localDataset_metadata = "../../data/raw/1channel/reference/epsilon.csv"
-        self._localData_root_dir = "../../data/raw/1channel/photo/"
+        self._localDataset_metadata = "../../data/raw/1channel/reference/training/epsilon.csv"
+        self._localData_root_dir = "../../data/raw/1channel/photo/training/"
         #--SELF-GENERATED DATA:
         #----UNNOISED
         self._localData_metadata_generated_unnoised = "../../data/generated/unnoised/reference/training/epsilon.csv"
@@ -16,11 +16,14 @@ class PathManagement:
 
         #--TEST
         #----NOISED
-        #self._localData_metadata_test = "../../data/generated/noised/reference/test/epsilon.csv"
-        #self._localData_root_dir_test = "../../data/generated/noised/photo/test"
+        # self._localData_metadata_test = "../../data/generated/noised/reference/test/epsilon.csv"
+        # self._localData_root_dir_test = "../../data/generated/noised/photo/test"
         #----UNNOISED
-        self._localData_metadata_test = "../../data/generated/unnoised/reference/test/epsilon.csv"
-        self._localData_root_dir_test = "../../data/generated/unnoised/photo/test/"
+        # self._localData_metadata_test = "../../data/generated/unnoised/reference/test/epsilon.csv"
+        # self._localData_root_dir_test = "../../data/generated/unnoised/photo/test/"
+        #----REALDATA
+        self._localData_metadata_test = "../../data/raw/1channel/reference/test/epsilon.csv"
+        self._localData_root_dir_test = "../../data/raw/1channel/photo/test/"
 
         #ON DRIVE:
         #--REAL DATA:

@@ -12,7 +12,6 @@ config=Config(pathManagement)
 
 
 ###################################################################################################################
-device="cpu"
 
 tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_read #temporary path
 print(tempPathToLoad)
@@ -20,8 +19,8 @@ model_ft2=torch.load(tempPathToLoad)
 del tempPathToLoad
 model_ft2.eval()
 dataloaders = prepare_data(config, train=False)
-device="cuda"
 allDiffs=0.0
+max_single_diff = 0.0
 j=0
 
 
@@ -31,15 +30,19 @@ for images, labels in dataloaders['test']:
     images, labels = images.cuda(), labels.cuda()
     outputs=model_ft2(images)
     for i in range(len(outputs)):
-        #diff=abs(float(labels[i]-outputs[i]))
         #diff=singleCustomLossFunction(outputs[i], labels[i])
         diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
         allDiffs+=float(diff)
+        if diff > max_single_diff:
+            max_single_diff = diff
+            print("new max single diff: ", max_single_diff)
         j+=1
-        if (j%100==0): print(j, "mean:", allDiffs/j)
+        if (j%100==0): print(j, "mean diff:", allDiffs/j)
         #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
 
-print("mean", allDiffs/j)
+print("mean diff:", allDiffs/j)
+print("mean diff in deg:", (allDiffs/j)*2*360)
+print("max single diff:", max_single_diff)
 
 if False:
     #############################################_charts etc_##############################################################

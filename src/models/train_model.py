@@ -33,7 +33,7 @@ dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transfor
 train_features, train_labels=next(iter(dataloaders["train"]))
 
 print("Device: ", config.device())
-print("Dataloader train len: ", len(dataloaders["train"]), "val len: ", len(dataloaders["val"]))
+print("Dataloader train batch quantity: ", len(dataloaders["train"]), "val batch quantity: ", len(dataloaders["val"]))
 
 
 ########################################################################################################
