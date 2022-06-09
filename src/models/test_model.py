@@ -1,5 +1,7 @@
 
+import copy
 from matplotlib import pyplot as plt
+import numpy as np
 import torch
 from model_functions.Config import Config
 from model_functions.PathManagement import PathManagement
@@ -25,24 +27,24 @@ j=0
 
 
 #############################_TEST_TIME_#################################################
+if True:
+    for images, labels in dataloaders['test']:
+        images, labels = images.cuda(), labels.cuda()
+        outputs=model_ft2(images)
+        for i in range(len(outputs)):
+            #diff=singleCustomLossFunction(outputs[i], labels[i])
+            diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
+            allDiffs+=float(diff)
+            if diff > max_single_diff:
+                max_single_diff = diff
+                print("new max single diff: ", max_single_diff)
+            j+=1
+            if (j%100==0): print(j, "mean diff:", allDiffs/j)
+            #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
 
-for images, labels in dataloaders['test']:
-    images, labels = images.cuda(), labels.cuda()
-    outputs=model_ft2(images)
-    for i in range(len(outputs)):
-        #diff=singleCustomLossFunction(outputs[i], labels[i])
-        diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
-        allDiffs+=float(diff)
-        if diff > max_single_diff:
-            max_single_diff = diff
-            print("new max single diff: ", max_single_diff)
-        j+=1
-        if (j%100==0): print(j, "mean diff:", allDiffs/j)
-        #print("j:", j, "label: ", float(labels[i]), "output: ", float(outputs[i]), "diff=", diff)
-
-print("mean diff:", allDiffs/j)
-print("mean diff in deg:", (allDiffs/j)*2*360)
-print("max single diff:", max_single_diff)
+    print("mean diff:", allDiffs/j)
+    print("mean diff in deg:", (allDiffs/j)*2*360)
+    print("max single diff:", max_single_diff)
 
 if False:
     #############################################_charts etc_##############################################################
@@ -76,7 +78,7 @@ if False:
 
     device="cpu"
 
-    tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #temporary path
+    tempPathToLoad = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_read #temporary path
 
     model_ft2=torch.load(tempPathToLoad)
 
@@ -102,7 +104,8 @@ if False:
         images, labels = images.cuda(), labels.cuda()
         outputs=model_ft2(images)
         for i in range(len(outputs)):
-            diff=min(abs(1-abs(float(labels[i]-outputs[i]))) , abs(float(labels[i]-outputs[i])))
+            # diff=min(abs(1-abs(float(labels[i]-outputs[i]))) , abs(float(labels[i]-outputs[i])))
+            diff = float(min( abs(abs(float(labels[i])-abs(outputs[i]))) , abs(1-float((abs(labels[i])-abs(outputs[i]))))))
             label=copy.deepcopy(float(labels[i]))
             output=copy.deepcopy(float(outputs[i]))
             allDiffs+=diff
@@ -135,7 +138,7 @@ if False:
             y.append(stats.bins[i].value/stats.bins[i].count)
             print(stats.bins[i].value/stats.bins[i].count)
     plt.plot(x,y)
-    plt.title(config.model_name_to_save)
+    plt.title(config.model_name_to_read)
     plt.xlabel("Epsilon")
     plt.ylabel("EpsilonError")
     plt.show()

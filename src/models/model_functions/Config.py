@@ -7,7 +7,7 @@ class Config:
         self.epochs = 20      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
-        self.batch_size = 4   #batch size used for training (e.g. bath_size photos in one process)
+        self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
         #todo sprawdzic Adama
         self.learning_rate = 0.001 #for SGD = 0.01, for Adam = 10^-4 -- 10^-3
         self.train_size=0.8
@@ -18,8 +18,8 @@ class Config:
         self.step_size = 7
         self.gamma = 0.1
         self.num_workers = 0
-        self.model_name_to_save = "1_generated_noised.pth"
-        self.model_name_to_read = "1_generated_noised.pth"
+        self.model_name_to_save = "xxx.pth"
+        self.model_name_to_read = "1_generated_unnoised_middle.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
                         transforms.CenterCrop(448),
@@ -32,8 +32,8 @@ class Config:
         
         #variables not to edit here. You Can edit path in PathManagement Class.
         self.dataset_metadata, self.data_root_dir = pathManagement.dataPath(dataPlace = self.data_place, 
-                                                                            dataType = "generated", 
-                                                                            isNoise = True)
+                                                                            dataType = "generatedMiddle", 
+                                                                            isNoise = False)
 
         self.dataset_metadata_test, self.data_root_dir_test = pathManagement.dataPathTest()
         
