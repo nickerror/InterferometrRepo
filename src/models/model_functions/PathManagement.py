@@ -35,11 +35,11 @@ class PathManagement:
         # self._localData_metadata_test = "../../data/generated/noised_middle/reference/test/epsilon.csv"
         # self._localData_root_dir_test = "../../data/generated/noised_middle/photo/test"
         #----UNNOISED MIDDLE
-        self._localData_metadata_test = "../../data/generated/unnoised_middle/reference/test/epsilon.csv"
-        self._localData_root_dir_test = "../../data/generated/unnoised_middle/photo/test"
+        # self._localData_metadata_test = "../../data/generated/unnoised_middle/reference/test/epsilon.csv"
+        # self._localData_root_dir_test = "../../data/generated/unnoised_middle/photo/test"
         #----REALDATA
-        # self._localData_metadata_test = "../../data/raw/1channel/reference/test/epsilon.csv"
-        # self._localData_root_dir_test = "../../data/raw/1channel/photo/test/"
+        self._localData_metadata_test = "../../data/raw/1channel/reference/test/epsilon.csv"
+        self._localData_root_dir_test = "../../data/raw/1channel/photo/test/"
 
         #ON DRIVE:
         #--REAL DATA:
