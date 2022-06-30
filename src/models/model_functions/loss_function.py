@@ -1,15 +1,6 @@
 from typing import List
 import torch
 
-def custom_loss_function_debug(outputs, labels, totalLoss):
-    print("NextOne")
-    for i in range (len(outputs)):
-        print("i: ", i, "label: ", float(labels[i]), "output:", float(outputs[i]), "diff= ", float(min( abs(abs(labels[i])-abs(outputs[i])) , abs(1-(abs(labels[i])-abs(outputs[i]))) )))
-
-    print("totalLoss:", float(totalLoss))
-    return totalLoss
-
-
 def custom_loss_function(outputs, labels):
     totalLoss=0.0
     for i in range (len(outputs)):
@@ -18,11 +9,12 @@ def custom_loss_function(outputs, labels):
     totalLoss/=len(outputs)
     return totalLoss
 
-def single_custom_loss_function(outputs, labels):
-    return min(abs(1-abs(float(labels-outputs))) , abs(float(labels-outputs)))
+def numpy_single_custom_loss_function(output, label):
+    return torch_single_custom_loss_function(torch.tensor([output]), torch.tensor([label])).numpy()[0]
+    #return min(abs(1-abs(float(labels-outputs))) , abs(float(labels-outputs)))
 
-def torch_single_custom_loss_function(outputs, labels):
-    return torch.min(torch.abs(1-torch.abs(labels-outputs)) , torch.abs(labels-outputs))
+def torch_single_custom_loss_function(output, label):
+    return torch.min(torch.abs(1-torch.abs(label-output)) , torch.abs(label-output))
 
 def total(xs: List[float]) -> float:
     result: float = 0.0

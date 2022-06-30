@@ -6,7 +6,7 @@ import torch
 from model_functions.Config import Config
 from model_functions.PathManagement import PathManagement
 from model_functions.data_for_model import prepare_data
-from model_functions.loss_function import single_custom_loss_function
+from model_functions.loss_function import numpy_single_custom_loss_function, torch_single_custom_loss_function
 
 
 pathManagement=PathManagement()
@@ -105,9 +105,9 @@ if True:
     for images, labels in dataloaders['test']:
         images, labels = images.cuda(), labels.cuda()
         outputs=model_ft2(images)
-        for i in range(len(outputs)):
-            #diff=min(abs(1-abs(float(labels[i]-outputs[i]))) , abs(float(labels[i]-outputs[i])))
-            diff = single_custom_loss_function(outputs = outputs[i], labels= labels[i])
+        for i in range(len(outputs)): #todo czy mozna usunac for...
+            diff = numpy_single_custom_loss_function(output = outputs[i], label = labels[i])
+
             label=copy.deepcopy(float(labels[i]))
             output=copy.deepcopy(float(outputs[i]))
             allDiffs+=diff
