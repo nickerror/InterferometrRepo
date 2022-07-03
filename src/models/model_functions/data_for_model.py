@@ -44,17 +44,18 @@ def prepare_data(config, train = True):
         return {'test': test_loader}
     
 def saveModel(model,config, model_name = "default"):
-    """! function to save model
-    
-    @param model        model to save
-    @patam config       config object from Config class
-    @param model_name   name of model - prefered pith *.pth. If "default" then name from config.
+    """function to save model
+
+    Args:
+        model (ResNet): model to save
+        config (Config): config object from Config class
+        model_name (str, optional): name of model - prefered pith *.pth. If "default" then name from config. Defaults to "default".
     """
-    pathManagement = PathManagement()
+
     if model_name == "default":
-        tempPathToSave = pathManagement.modelSavePath(dataPlace = config.data_place) + config.model_name_to_save #path to save
+        tempPathToSave = PathManagement.getModelSavePath() + config.model_name_to_save #path to save
     else:
-        tempPathToSave = pathManagement.modelSavePath(dataPlace = config.data_place) + model_name #path to save
+        tempPathToSave = PathManagement.getModelSavePath() + model_name #path to save
 
     torch.save(model, tempPathToSave)
     #torch.save(model.state_dict(), tempPathToSave)

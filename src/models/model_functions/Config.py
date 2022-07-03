@@ -19,7 +19,7 @@ class Config:
         self.gamma = 0.1
         self.num_workers = 0
         self.model_name_to_save = "2_generated_mixed.pth"
-        self.model_name_to_read = "2_generated_noised.pth"
+        self.model_name_to_read = "2_generated_mixed.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
                         transforms.CenterCrop(448),
@@ -31,11 +31,8 @@ class Config:
         self._cuda=True        #GPU = True, CPU = False
         
         #variables not to edit here. You Can edit path in PathManagement Class.
-        self.dataset_metadata, self.data_root_dir = pathManagement.dataPath(dataPlace = self.data_place, 
-                                                                            dataType = "mixed", 
-                                                                            isNoise = True)
+        self.dataset_metadata, self.data_root_dir = pathManagement.getDataPath()
 
-        self.dataset_metadata_test, self.data_root_dir_test = pathManagement.dataPathTest()
         
         #additional
         self.debug_mode = False

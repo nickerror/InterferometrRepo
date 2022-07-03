@@ -1,115 +1,119 @@
+import logging
+import os.path
+
+logging.basicConfig(
+    level = logging.ERROR,
+    format = "{asctime} {levelname:<8} {message}",
+    style = '{',
+    #filename='pathManagement.log',
+    filemode='w')
+
 class PathManagement:
-    def __init__(self):
-        self.__cloud_path_prefix = "/content/drive/My Drive/"
-        #########___Data PATH___##############
-        #FOR LOCAL DATA:
-        #--REAL DATA:
-        self._localDataset_metadata = "../../data/raw/1channel/reference/training/epsilon.csv"
-        self._localData_root_dir = "../../data/raw/1channel/photo/training/"
-        #--SELF-GENERATED DATA:
-        #----UNNOISED
-        self._localData_metadata_generated_unnoised = "../../data/generated/unnoised/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_unnoised = "../../data/generated/unnoised/photo/training/"
-        #----NOISED
-        self._localData_metadata_generated_noised = "../../data/generated/noised/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_noised = "../../data/generated/noised/photo/training/"
-        #----NOISED MIDDLE
-        self._localData_metadata_generated_noised_middle = "../../data/generated/noised_middle/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_noised_middle = "../../data/generated/noised_middle/photo/training/"
-        #----UNNOISED MIDDLE
-        self._localData_metadata_generated_unnoised_middle = "../../data/generated/unnoised_middle/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_unnoised_middle = "../../data/generated/unnoised_middle/photo/training/"
-        #----MIXED
-        self._localData_metadata_generated_mixed = "../../data/generated/mixed/reference/training/epsilon.csv"
-        self._localData_root_dir_generated_mixed = "../../data/generated/mixed/photo/training/"
+    #variables
+    __metadata_file_name = "epsilon.csv"
+    __path_save_model = "../../models/"
 
-        #--TEST
-        #----NOISED
-        # self._localData_metadata_test = "../../data/generated/noised/reference/test/epsilon.csv"
-        # self._localData_root_dir_test = "../../data/generated/noised/photo/test"
-        #----UNNOISED
-        # self._localData_metadata_test = "../../data/generated/unnoised/reference/test/epsilon.csv"
-        # self._localData_root_dir_test = "../../data/generated/unnoised/photo/test/"
-        #
-        #----NOISED MIDDLE
-        # self._localData_metadata_test = "../../data/generated/noised_middle/reference/test/epsilon.csv"
-        # self._localData_root_dir_test = "../../data/generated/noised_middle/photo/test"
-        #----UNNOISED MIDDLE
-        # self._localData_metadata_test = "../../data/generated/unnoised_middle/reference/test/epsilon.csv"
-        # self._localData_root_dir_test = "../../data/generated/unnoised_middle/photo/test"
-        #----REALDATA
-        self._localData_metadata_test = "../../data/raw/1channel/reference/test/epsilon.csv"
-        self._localData_root_dir_test = "../../data/raw/1channel/photo/test/"
+    def __init__(self, dataType = "original", noiseType = "noised", centerInTheMiddle = False, purposeData = "training"):
+        """initialize all data for path.
 
-        #ON DRIVE:
-        #--REAL DATA:
-        self._cloudDataset_metadata = self.__cloud_path_prefix + "data/reference/real/epsilon_short.csv"
-        self._cloudData_root_dir = self.__cloud_path_prefix + "data/photo/real/"
-        #--SELF-GENERATED DATA:
-        #----UNNOISED
-        self._cloudData_metadata_generated_unnoised = self.__cloud_path_prefix + "data/reference/generated/unnoised/epsilon.csv"
-        self._cloudData_root_dir_generated_unnoised = self.__cloud_path_prefix + "data/photo/generated/unnoised/"
-        #----NOISED
-        self._cloudData_metadata_generated_noised = self.__cloud_path_prefix + "data/reference/generated/noised/epsilon.csv"
-        self._cloudData_root_dir_generated_noised = self.__cloud_path_prefix + "data/photo/generated/noised/"
-
-
-        #########___Model PATH___##############
-        self.__path_save_model_cloud = self.__cloud_path_prefix + "data/models/"
-        self.__path_save_model_local = "../../models/"
-
-    def dataPath(self, dataPlace = "local", dataType = "original", isNoise = True):
-        """! define correct data path using parameters
-        
-        @param dataPlace  data place can be 'local' or 'cloud'.
-        @param dataType   data type can be 'original' or 'generated' or 'mixed'.
-        @param isNoise    only used in case of generated dataType.
-
-        @return 2 path --> 1. with methadata, 2. with photo
+        Args:
+            dataType (str, optional): The origin of the data. Can be "original" - data from camera and "generated" - data from generator. Defaults to "original". Possible "original", "generated"
+            noiseType (str, optional): Data can be with noise, without noise and mixed - some data with generated noise, and some data without. Defaults to "noised". Possible "noised", "unnoised", "mixed"
+            centerInTheMiddle (bool, optional): In generated data case which data to use. With the center in center of the photo or not. Defaults to False.
+            purposeData (str, optional): Purpose of data. For training will be use another data than for test. Defaults to "training". Possible "training", "test"
         """
-        if dataPlace == 'local':
-            if dataType == 'original':
-                return self._localDataset_metadata, self._localData_root_dir
-            elif dataType == 'generated':
-                if isNoise == False:
-                    return self._localData_metadata_generated_unnoised, self._localData_root_dir_generated_unnoised
-                else:
-                    return self._localData_metadata_generated_noised, self._localData_root_dir_generated_noised
-            elif dataType == 'mixed':
-                return self._localData_metadata_generated_mixed, self._localData_root_dir_generated_mixed
-            elif dataType == 'generatedMiddle':
-                if isNoise == False:
-                    return self._localData_metadata_generated_unnoised_middle, self._localData_root_dir_generated_unnoised_middle
-                else:
-                    return self._localData_metadata_generated_noised_middle, self._localData_root_dir_generated_noised_middle
+        self.__path_location = "../../data/"
+        self.__dataset_metadata = "" #metadata in csv
+        self.__data_root_dir = "" #photos
 
-            else:
-                return False
-        elif dataPlace == 'cloud':
-            if dataType == 'original':
-                return self._cloudDataset_metadata, self._cloudData_root_dir
-            elif dataType == 'generated':
-                if isNoise == False:
-                    return self._cloudData_metadata_generated_unnoised, self._cloudData_root_dir_generated_unnoised
-                else:
-                    return self._cloudData_metadata_generated_noised, self._cloudData_root_dir_generated_noised
-            else:
-                return False
+        self.__dataType = dataType 
+        self.__noiseType = noiseType 
+        self.__centerInTheMiddle = centerInTheMiddle 
+        self.__purposeData = purposeData 
+        
+        
+        self.__createPathToData(filename = self.__metadata_file_name)
+
+    #public method
+    def isPathExist(self):
+        """this function is used to check if paths with metadata and photos exist 
+        """
+        if not os.path.exists(path=self.__data_root_dir):
+            logging.error("data_root_dir path doesn't exist")
+            return False
+        elif not os.path.exists(path=self.__dataset_metadata):
+            logging.error("dataset_metadata path doesn't exist")
+            return False
         else:
-          return False
+            return True
 
-    def dataPathTest(self):
-        return self._localData_metadata_test, self._localData_root_dir_test
+    def setTemporaryPaths(self, dataset_metadata, data_root_dir):
+        """is used to set paths with metadata and photos
 
-    def modelSavePath(self, dataPlace = "local"):
-        """! define model save path depending on the save location
-        
-        @param dataPlace  data place can be 'local' or 'cloud'.
-
-        @return model save path
+        Args:
+            dataset_metadata (str): path to metadata - directly to csv file
+            data_root_dir (str): path to photos
         """
-        if dataPlace == "local":
-            return self.__path_save_model_local
-        elif dataPlace == "cloud":
-            return self.__path_save_model_cloud
-        else: return False
+        self.__dataset_metadata = dataset_metadata
+        self.__data_root_dir = data_root_dir
+        self.isPathExist()
+
+    def changeMetadataFileName(self, filename = "epsilon.csv"):
+        """change file name.
+
+        Args:
+            filename (str, optional): file name to change. Defaults to "epsilon.csv".
+        """
+        self.__metadata_file_name = filename      
+        self.__init__(dataType=self.__dataType,noiseType=self.__noiseType,centerInTheMiddle=self.__centerInTheMiddle,purposeData=self.__purposeData)
+        self.isPathExist()
+
+    def getDataPath(self):
+        """return path to metadata (CSV) and photos
+
+        Returns:
+            str: metadata path
+            str: photo path
+        """
+        return self.__dataset_metadata, self.__data_root_dir
+
+    @staticmethod
+    def getModelSavePath():
+        return PathManagement.__path_save_model
+
+
+    #private methods
+    def __createMainDataPath(self):
+        if self.__dataType == "generated":
+            self.__path_location += "generated/"
+            self.__selectNoiseType()
+            self.__isInTheMiddle()
+        elif self.__dataType == "original":
+            self.__path_location += "raw/1channel/"
+        else:
+            logging.error("Wrong data type argument!!!")
+
+    def __createPathToData(self, filename):
+        self.__createMainDataPath()
+
+        self.__data_root_dir = self.__path_location + "photo/"
+        self.__dataset_metadata = self.__path_location + "reference/"
+        self.__addPurposeData()
+        self.__dataset_metadata += filename
+        self.isPathExist()
+    
+    def __addPurposeData(self):
+        self.__data_root_dir += self.__purposeData +"/"
+        self.__dataset_metadata += self.__purposeData + "/"
+
+    def __selectNoiseType(self):
+        if self.__noiseType == "noised" or self.__noiseType == "unnoised" or self.__noiseType == "mixed":
+            self.__path_location += self.__noiseType
+        else:
+            logging.error("Wrong noise type argument!!!")
+
+    def __isInTheMiddle(self):
+        if self.__centerInTheMiddle == True:
+            self.__path_location += "_middle/"
+        else:
+            self.__path_location += "/"
