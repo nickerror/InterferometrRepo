@@ -10,10 +10,9 @@ def prepare_data(config, train = True):
     logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=50) #50 - critical, 40 - error, 30 - warning, 20 - info, 10 - debug, 0 - notset
     logging.debug('1. Start prepare_data')
 
-    if train:
-        dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
-    else:
-        dataset = EpsilonDataset(config.data_root_dir_test, config.dataset_metadata_test, transform=config.data_transforms)
+
+    dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
+    
     
     #g = torch.Generator(device=config.device()).manual_seed(23) 
     g = torch.Generator(device="cpu").manual_seed(23) 
