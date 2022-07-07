@@ -20,7 +20,7 @@ from model_functions.loss_function import custom_loss_function
 
 ######################################################################################################
 
-pathManagement=PathManagement(dataType="generated", noiseType="noised", centerInTheMiddle=False, purposeData="training")
+pathManagement=PathManagement(dataType="original", noiseType="mixed", centerInTheMiddle=False, purposeData="training")
 config=Config(pathManagement)
 
 #########################################################################################################
@@ -32,6 +32,7 @@ dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
 dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
 train_features, train_labels=next(iter(dataloaders["train"]))
 
+print(config.model_name_to_save)
 print("Device: ", config.device())
 print("Dataloader train batch quantity: ", len(dataloaders["train"]), "val batch quantity: ", len(dataloaders["val"]))
 

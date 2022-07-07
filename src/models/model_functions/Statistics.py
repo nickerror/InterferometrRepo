@@ -29,30 +29,27 @@ class Stats:
         def plotStatistics(self):
             plt.subplot(2,2,1)      
             # plt.plot(x,y)
-            plt.plot(self.__binMeanError)
+            plt.plot(self.__binMeanError/self.__samplesQuantityBin)
             plt.title("test")
             plt.xlabel("Epsilon")
             plt.ylabel("EpsilonError")
             plt.show()
 
-            #plt.clf()
             plt.subplot(2,2,2)
-            plt.plot(self.__binMeanError) #.
+            plt.plot(self.__samplesQuantityBin) #.
             plt.ylabel('number of samples') #.
             plt.show() #.
 
-            #plt.clf()
             plt.subplot(2,2,3)
-            plt.plot(self.__binMeanError) #.
+            plt.plot(self.__binMinError) #.
             plt.ylabel('min error') #.
             plt.show() #.
 
-            #plt.clf()
             plt.subplot(2,2,4)
-            plt.plot(self.__binMeanError) #.
+            plt.plot(self.__binMaxError) #.
             plt.ylabel('max error') #.
             plt.show() #.
-            #print("mean", allDiffs/j)
+
 
     class Bin:
         def __init__(self):
