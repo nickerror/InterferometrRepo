@@ -65,6 +65,7 @@ for images, labels in dataloaders['test']:
     j+=1
     stats.AddCalculation(label, diff)
     #print("label: ", label,"diff: ", diff) #.
+    
     tempBinNumber = int(label*1000 // 10) #.
     numberOfSamples[tempBinNumber] = numberOfSamples[tempBinNumber] + 1 #.
     if minError[tempBinNumber] > diff:
@@ -90,6 +91,9 @@ for i in range (len(stats.bins)):
     else: 
         y.append(stats.bins[i].value/stats.bins[i].count)
         print(stats.bins[i].value/stats.bins[i].count)
+
+
+stats.statistics.plotStatistics()
 
 plt.subplot(2,2,1)       
 plt.plot(x,y)
