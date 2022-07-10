@@ -1,5 +1,6 @@
 
 import copy
+import statistics
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
@@ -10,13 +11,13 @@ from model_functions.data_for_model import prepare_data
 from model_functions.loss_function import numpy_single_custom_loss_function
 
 
-pathManagement=PathManagement(dataType="original", 
+pathManagement=PathManagement(dataType="generated", 
                                 noiseType="noised", 
                                 centerInTheMiddle=False, 
                                 purposeData="test")
 
 config=Config(pathManagement)
-config.setModelNameToRead("3_generated_mixed.pth")
+config.setModelNameToRead("2_generated_mixed.pth")
 
 
 ###################################################################################################################
@@ -64,14 +65,20 @@ for images, labels in dataloaders['test']:
     allDiffs+=diff
     j+=1
     stats.AddCalculation(label, diff)
+    stats.statistics.addReturnedStatistics(output=output, label = label, lossCalculatedError=diff)
     #print("label: ", label,"diff: ", diff) #.
     
+    #print("label ", j, " = ", label)
+    #print("output ", j, " = ", output)
+    #print("loss return ", j, " = ", diff)
 
     if (j%100==0): print(j, "mean:", allDiffs/j)
 
 
 
 stats.statistics.plotStatistics()
+stats.statistics.plotReturnedStatistics()
+
 
 
 

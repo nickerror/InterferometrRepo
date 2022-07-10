@@ -112,7 +112,8 @@ model_ft = models.resnet18(pretrained=True)
 #todo najpierw uczy sie siec zamrozona i na poczatku uczy sie tylko ostatnie 
 #     warstwy i dopiero jak dobrze pojdzie to odmrazamy
 num_ftrs = model_ft.fc.in_features
-model_ft.fc = nn.Linear(num_ftrs, 1)
+model_ft.fc = nn.Linear(num_ftrs, 1) #spróbować z sigmoid
+
 
 model_ft = model_ft.to(config.device())
 

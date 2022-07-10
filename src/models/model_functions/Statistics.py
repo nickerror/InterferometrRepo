@@ -1,7 +1,16 @@
+from cProfile import label
 import numpy as np
 from matplotlib import pyplot as plt
 class Stats:
+
     class Statistics:
+
+        class __ReturnedValues:
+            def __init__(self):
+                self._outputs = []
+                self._labels = []
+                self._lossCalculatedError = []
+
         def __init__(self, binCount = 100):
             self.__binCount = binCount
             self.__minError = 1.0
@@ -10,6 +19,8 @@ class Stats:
             self.__binMaxError = np.zeros([binCount,1],dtype=float) 
             self.__binMeanError = np.zeros([binCount,1], dtype=float)
             self.__samplesQuantityBin = np.zeros([binCount,1], dtype=float)
+
+            self.__returnedValues = self.__ReturnedValues()
 
         
         def addErrorsToStatistic(self, epsilon, error, currentBinNumber = 0):
@@ -25,6 +36,12 @@ class Stats:
 
             self.__binMeanError[currentBinNumber] += error
             self.__samplesQuantityBin[currentBinNumber] +=1
+
+        def addReturnedStatistics(self, output, label, lossCalculatedError):
+            self.__returnedValues._outputs.append(output)
+            self.__returnedValues._labels.append(label)
+            self.__returnedValues._lossCalculatedError.append(lossCalculatedError)
+
 
         def plotStatistics(self):
             plt.subplot(2,2,1)      
@@ -50,6 +67,16 @@ class Stats:
             plt.ylabel('max error') #.
             plt.show() #.
 
+        def plotReturnedStatistics(self):
+            plt.clf()
+            plt.cla()
+
+            plt.plot(self.__returnedValues._outputs, 'b', label = 'outputs')
+            plt.plot(self.__returnedValues._labels, 'g', label = 'labels')
+            plt.plot(self.__returnedValues._lossCalculatedError, 'r', label = 'error from loss func.')
+
+            plt.legend(loc='lower right')
+            plt.show()
 
     class Bin:
         def __init__(self):
@@ -76,7 +103,7 @@ class Stats:
         self.bins[self.__currentBinNumber(epsilon)].value+=error
         self.bins[self.__currentBinNumber(epsilon)].count+=1
         self.statistics.addErrorsToStatistic(epsilon, error, self.__currentBinNumber(epsilon))
-
+    
     def __currentBinNumber(self, epsilon):
         return int(epsilon/(1/self.binAmmount))
 
