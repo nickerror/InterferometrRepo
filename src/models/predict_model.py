@@ -17,7 +17,7 @@ pathManagement=PathManagement(dataType="generated",
                                 purposeData="test")
 
 config=Config(pathManagement)
-config.setModelNameToRead("2_generated_mixed.pth")
+config.setModelNameToRead("test2Sigmoid.pth")
 
 
 ###################################################################################################################
@@ -61,6 +61,7 @@ for images, labels in dataloaders['test']:
     diff = numpy_single_custom_loss_function(output = outputs[0], label = labels[0])
 
     label=copy.deepcopy(float(labels[0]))
+    #output=copy.deepcopy(float(outputs[0][0])) #for sigmoid
     output=copy.deepcopy(float(outputs[0]))
     allDiffs+=diff
     j+=1

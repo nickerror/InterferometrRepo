@@ -45,26 +45,23 @@ class Stats:
 
         def plotStatistics(self):
             plt.subplot(2,2,1)      
-            # plt.plot(x,y)
             plt.plot(self.__binMeanError/self.__samplesQuantityBin)
             plt.title("test")
             plt.xlabel("Epsilon")
             plt.ylabel("EpsilonError")
-            plt.show()
 
             plt.subplot(2,2,2)
             plt.plot(self.__samplesQuantityBin) #.
             plt.ylabel('number of samples') #.
-            plt.show() #.
 
             plt.subplot(2,2,3)
             plt.plot(self.__binMinError) #.
             plt.ylabel('min error') #.
-            plt.show() #.
 
             plt.subplot(2,2,4)
             plt.plot(self.__binMaxError) #.
             plt.ylabel('max error') #.
+
             plt.show() #.
 
         def plotReturnedStatistics(self):
@@ -107,11 +104,3 @@ class Stats:
     def __currentBinNumber(self, epsilon):
         return int(epsilon/(1/self.binAmmount))
 
-
-# stats = Stats(binCount=100)
-# for a in np.arange(0.0,1.0,0.01):
-#     stats.AddCalculation(a, a+0.7)
-# stats.statistics.plotStatistics()
-
-
-# fasdfas=123

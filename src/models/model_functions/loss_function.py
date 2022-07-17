@@ -11,6 +11,7 @@ def custom_loss_function(outputs, labels):
 
 def numpy_single_custom_loss_function(output, label):
     return torch_single_custom_loss_function(torch.tensor([output]), torch.tensor([label])).numpy()[0]
+    #return torch_single_custom_loss_function(torch.tensor([output[0]]), torch.tensor([label])).numpy()[0] #for sigmoid
     #return min(abs(1-abs(float(labels-outputs))) , abs(float(labels-outputs)))
 
 def torch_single_custom_loss_function(output, label):

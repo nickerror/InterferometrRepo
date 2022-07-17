@@ -1,16 +1,14 @@
-#import numpy as np
-
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+import copy
+#########################___import_torch_fun___####################################
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-import numpy as np
-import torchvision
-from torchvision import datasets, models, transforms
-import matplotlib.pyplot as plt
-import time
-import copy
-
+from torchvision import  models
+from torch.utils.tensorboard import SummaryWriter #to print to tensorboard
 #########################_import_own_functions_####################################
 from model_functions.PathManagement import PathManagement
 from model_functions.Config import Config
@@ -18,12 +16,14 @@ from model_functions.EpsilonDataset import EpsilonDataset
 from model_functions.data_for_model import prepare_data, saveModel 
 from model_functions.loss_function import custom_loss_function
 
+
 ######################################################################################################
 
 pathManagement=PathManagement(dataType="original", noiseType="mixed", centerInTheMiddle=False, purposeData="training")
 config=Config(pathManagement)
 
 #########################################################################################################
+writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_'+config.model_name_to_save) # declare tensorboard
 
 ##########################################################################################################
 
@@ -61,7 +61,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
             # Iterate over data.
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(config.device())
-                labels = labels.to(config.device())
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -69,12 +68,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
                     loss = criterion(outputs, labels)
-
+                    #del outputs
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
+                        #loss.sum().backward() #for sigmoid
                         optimizer.step()
-
+                
                 # statistics
                 running_loss+=loss
 
@@ -86,11 +86,17 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
             epoch_acc = 1-epoch_loss
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                str(phase), float(epoch_loss), float(epoch_acc)))
+                str(phase), float(epoch_loss), float(epoch_acc))) 
+                #str(phase), float(epoch_loss[0]), float(epoch_acc[0]))) #for sigmoid
+            
+            writerTensorBoard.add_scalar('Loss/'+str(phase), float(epoch_loss), epoch)
+            writerTensorBoard.add_scalar('Accuracy/'+str(phase), float(epoch_acc), epoch)
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
+            #if phase == 'val' and epoch_acc[0] > best_acc: #for sigmoid
                 best_acc = epoch_acc
+                #best_acc = epoch_acc[0] #for sigmoid
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         print()
@@ -112,7 +118,8 @@ model_ft = models.resnet18(pretrained=True)
 #todo najpierw uczy sie siec zamrozona i na poczatku uczy sie tylko ostatnie 
 #     warstwy i dopiero jak dobrze pojdzie to odmrazamy
 num_ftrs = model_ft.fc.in_features
-model_ft.fc = nn.Linear(num_ftrs, 1) #spróbować z sigmoid
+model_ft.fc = nn.Linear(in_features = num_ftrs, out_features= 1) #spróbować z sigmoid
+#model_ft.fc = nn.Sigmoid()
 
 
 model_ft = model_ft.to(config.device())
