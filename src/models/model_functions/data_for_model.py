@@ -4,6 +4,7 @@ import torch.utils
 from model_functions.EpsilonDataset import EpsilonDataset
 from model_functions.PathManagement import PathManagement
 from model_functions.Config import Config
+import os
 
 def prepare_data(config, train = True):
     #create time logger:
@@ -36,7 +37,7 @@ def prepare_data(config, train = True):
 
         test_dataset, val_dataset = torch.utils.data.random_split(dataset, [test_size, val_size], generator=g)
 
-        print("length train dataset:", len(test_dataset))
+        print("length test dataset:", len(test_dataset))
 
         test_loader = torch.utils.data.DataLoader(**loader_params, dataset=test_dataset )
         
@@ -60,6 +61,39 @@ def saveModel(model,config, model_name = "default"):
     #torch.save(model.state_dict(), tempPathToSave)
     
     print("model saved: " + config.data_place)
+
+def saveEpochModel(model,config, epoch_nr = 0, model_name = "default"):
+    """function to save model after epoch
+
+    Args:
+        model (ResNet): model to save
+        config (Config): config object from Config class
+        epoch_nr (int, optional): epoch number
+        model_name (str, optional): name of model - prefered pith *.pth. If "default" then name from config. Defaults to "default".
+    """
+    
+    if model_name == "default":
+        folderPathToSave = PathManagement.getModelSavePath() + config.model_name_to_save[:-4] + "-separate_epochs/"
+        epochModelNameToSave = config.model_name_to_save[:-4] + "_epoch_" + str(epoch_nr) + ".pth"
+        tempPathToSave =  folderPathToSave + epochModelNameToSave #path to save
+    else:
+        folderPathToSave =PathManagement.getModelSavePath() +  model_name[:-4] + "-separate_epochs/"
+        epochModelNameToSave = model_name[:-4] + "_epoch_" + str(epoch_nr) + ".pth"
+        tempPathToSave = folderPathToSave + epochModelNameToSave #path to save
+
+    
+
+    if not os.path.exists(folderPathToSave):
+    
+        # Create a new directory because it does not exist 
+        os.makedirs(folderPathToSave)
+        print("The new directory is created!")
+  
+    torch.save(model, tempPathToSave)
+    
+    print("model saved: " + config.data_place)
+    print("model name: " + epochModelNameToSave)
+
 
 def import_data_form_cloud(config ):
     #import data from google drive
