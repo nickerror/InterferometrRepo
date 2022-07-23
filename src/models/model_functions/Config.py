@@ -42,6 +42,9 @@ class Config:
             return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         else:
             return "cpu"
+
+    def setBathSize(self,batch_size):
+        self.batch_size = batch_size
         
     def setModelNameToRead(self, model_name_to_read):
         self.model_name_to_read = model_name_to_read
