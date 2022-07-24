@@ -29,7 +29,6 @@ writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_'+config.model_name_
 
 dataloaders = prepare_data(config)
 dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
-dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
 train_features, train_labels=next(iter(dataloaders["train"]))
 
 print(config.model_name_to_save)
@@ -42,7 +41,7 @@ print("Dataloader train batch quantity: ", len(dataloaders["train"]), "val batch
 def train_model(model, criterion, optimizer, scheduler, num_epochs):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = -100000
+    best_acc = 0.0
     
     for epoch in range(num_epochs):
         
@@ -116,7 +115,7 @@ model_ft = models.resnet18(pretrained=True)
 #todo mozna sprobowac wiekszego resneta
 #todo najpierw uczy sie siec zamrozona i na poczatku uczy sie tylko ostatnie 
 #     warstwy i dopiero jak dobrze pojdzie to odmrazamy
-num_ftrs = model_ft.fc.in_features
+
 model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
 
 

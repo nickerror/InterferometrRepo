@@ -13,6 +13,8 @@ def prepare_data(config, train = True):
 
 
     dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
+    #dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms)
+    #dataset = EpsilonDataset(config.data_root_dir, config.dataset_metadata, transform=config.data_transforms_augmented)
     
     
     #g = torch.Generator(device=config.device()).manual_seed(23) 
@@ -20,7 +22,7 @@ def prepare_data(config, train = True):
     loader_params = dict(batch_size=config.batch_size, num_workers=config.num_workers,
                             pin_memory=config.pin_memory, generator=g, shuffle=True)
 
-    if train:
+    if train: #train and validation
         train_size = int(config.train_size * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size], generator=g)
@@ -31,7 +33,7 @@ def prepare_data(config, train = True):
         validation_loader = torch.utils.data.DataLoader(**loader_params, dataset=val_dataset )
         
         return {'train': train_loader, 'val': validation_loader}
-    else:
+    else: #test only
         val_size = int(0)
         test_size = len(dataset)
 

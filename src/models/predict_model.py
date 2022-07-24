@@ -1,7 +1,4 @@
-
 import copy
-import multiprocessing
-from cv2 import accumulate
 from matplotlib import pyplot as plt
 import torch
 from model_functions.Statistics import Stats
@@ -18,10 +15,10 @@ pathManagement=PathManagement(dataType="generated",
 
 
 config=Config(pathManagement)
-config.setModelNameToRead("hardtanh_1_generated_mixed.pth")
+config.setModelNameToRead("baseline_1_generated_mixed.pth")
 config.setBathSize(1)
 
-###################################################################################################################
+##########################################_PARAMETRIZE_############################################################
 
 tempPathToLoadModel = pathManagement.getModelSavePath() + config.model_name_to_read #temporary path
 print("model path: " + tempPathToLoadModel)
@@ -32,26 +29,21 @@ model_ft.eval()
 
 captumVisualisation = CaptumVisualisation(model_ft)
 
-#############################################_charts etc_##############################################################
-##### with printing charts
-
 dataloaders = prepare_data(config, train=False)
 accumulatedErrors=0.0
 stats=Stats(binCount = 100)
 numberOfChecked=0
 
-
+#############################################_PREDICTION_##############################################################
 for images, labels in dataloaders['test']:
     images, labels = images.cuda(), labels.cuda()
-    outputs=model_ft(images)
+    outputs = model_ft(images) #ToDo: write class "predict", with all transformations.
     outputs_elements = torch.numel(outputs)
     outputs = torch.sum(outputs,1)/outputs_elements
-    
-    
-    captumVisualisation.showCaptumVisualisation(images, visualize = False) #visualizes only if visualization has been turned on (parameter)
-    
-##########
     singleError = numpy_single_custom_loss_function(output = outputs[0], label = labels[0])
+
+ ########################################_CHARTS_AND_INFORMATIONS_##############################################################   
+    captumVisualisation.showCaptumVisualisation(images, visualize = False) 
 
     label=copy.deepcopy(float(labels[0]))
     output=copy.deepcopy(float(outputs[0]))

@@ -9,6 +9,7 @@ class CaptumVisualisation:
             model_ft (resnet): Model to predict value
             modelOutputNumebr (int, optional): number of neurons in the last layer
         """
+        #ToDo: write method to display gradient on image.
         self.model_ft = model_ft
         self.ig = IntegratedGradients(model_ft) #captum
         self.modelOutputNumebr = modelOutputNumebr

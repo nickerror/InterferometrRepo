@@ -1,10 +1,11 @@
 from torchvision import transforms
 import torch
+from torchvision.transforms.autoaugment import AutoAugmentPolicy
 #from PathManagement import PathManagement
 class Config:
     def __init__(self, pathManagement, forTest = False):
         #Variables to edit
-        self.epochs = 30      #number of epochs
+        self.epochs = 40      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
         self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
@@ -18,7 +19,7 @@ class Config:
         self.step_size = 7
         self.gamma = 0.1
         self.num_workers = 0
-        self.model_name_to_save = "hardtanh_1_generated_mixed.pth"
+        self.model_name_to_save = "baseline_1_generated_mixed.pth"
         self.model_name_to_read = "2_generated_mixed.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
@@ -28,6 +29,28 @@ class Config:
                         transforms.ToTensor(),
                         transforms.Normalize(mean=[0.491, 0.491, 0.491],
                                               std=[0.210, 0.210, 0.210]) ])
+
+        self.data_transforms_augmented = transforms.Compose([
+                        transforms.CenterCrop(448),
+                        transforms.Resize(224), 
+                        transforms.AutoAugment(AutoAugmentPolicy.SVHN),
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=[0.491, 0.491, 0.491],
+                                              std=[0.210, 0.210, 0.210]) ])
+
+        self.data_transforms_baseline = transforms.Compose([
+                        transforms.RandomHorizontalFlip(),
+                        transforms.RandomHorizontalFlip(),
+                        transforms.CenterCrop(448),
+                        transforms.Resize(224), 
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=[0.491, 0.491, 0.491],
+                                              std=[0.210, 0.210, 0.210]), 
+                        transforms.RandomErasing() #for test.   should we leave it?                 
+                                              ])
+                        
+
+
         self._cuda=True        #GPU = True, CPU = False
         
         #variables not to edit here. You Can edit path in PathManagement Class.
