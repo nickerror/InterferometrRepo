@@ -22,12 +22,11 @@ from model_functions.loss_function import custom_loss_function
 pathManagement=PathManagement(dataType="generated", noiseType="mixed", centerInTheMiddle=False, purposeData="training")
 config=Config(pathManagement)
 
-#########################################################################################################
-writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_'+config.model_name_to_save) # declare tensorboard
+
 
 ##########################################################################################################
 
-dataloaders = prepare_data(config)
+dataloaders = prepare_data(config, train = True, datasetType = "baseline")
 dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
 train_features, train_labels=next(iter(dataloaders["train"]))
 
@@ -38,7 +37,7 @@ print("Dataloader train batch quantity: ", len(dataloaders["train"]), "val batch
 
 ########################################################################################################
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs):
+def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -91,7 +90,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
             writerTensorBoard.add_scalar('Loss/'+str(phase), float(epoch_loss), epoch)
             writerTensorBoard.add_scalar('Accuracy/'+str(phase), float(epoch_acc), epoch)
 
-            saveEpochModel(model=model, config=config, epoch_nr=epoch + 1)
+            saveEpochModel(model=model, config=config, epoch_nr=epoch + 1, model_name=model_name)
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc: 
                 best_acc = epoch_acc 
@@ -109,29 +108,59 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
     torch.save(model,"model_temp")
     return model
 
-############################################################################################################
-
-model_ft = models.resnet18(pretrained=True)
-#todo mozna sprobowac wiekszego resneta
-#todo najpierw uczy sie siec zamrozona i na poczatku uczy sie tylko ostatnie 
-#     warstwy i dopiero jak dobrze pojdzie to odmrazamy
-
-model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
+#############################___LEARNING_PROCES___###############################################
+freeze = True
+withoutFreeze = True
 
 
-model_ft = model_ft.to(config.device())
 
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=config.learning_rate, momentum=config.momentum)
+if withoutFreeze == True:
+    modelName = "without_freezen.pth" #temporary here
+    #########################################################################################################
+    writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
 
 
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
+    model_ft = models.resnet18(pretrained=True)
+    model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
 
-#####################################################################################################
-model_ft = train_model(model=model_ft, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
-                       num_epochs=config.epochs)
+    model_ft = model_ft.to(config.device())
 
-saveModel(model=model_ft, config=config)
-###################################################################################################
+    # Observe that all parameters are being optimized
+    optimizer_ft = optim.SGD(model_ft.parameters(), lr=config.learning_rate, momentum=config.momentum)
 
+
+    # Decay LR by a factor of 0.1 every 7 epochs
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
+
+    #####################################################################################################
+    model_ft = train_model(model=model_ft, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
+                        num_epochs=config.epochs, model_name=modelName)
+
+    saveModel(model=model_ft, config=config, model_name=modelName)
+    ###################################################################################################
+
+if freeze == True:
+    modelName = "freezen.pth" #temporary here
+    #########################################################################################################
+    writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
+
+    model_conv = models.resnet18(pretrained=True)
+    for param in model_conv.parameters():
+        param.requires_grad = False
+
+    model_conv.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
+
+    model_conv = model_conv.to(config.device())
+
+    # Observe that all parameters are being optimized
+    optimizer_ft = optim.SGD(model_conv.parameters(), lr=config.learning_rate, momentum=config.momentum)
+
+
+    # Decay LR by a factor of 0.1 every 7 epochs
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
+
+    #####################################################################################################
+    model_conv = train_model(model=model_conv, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
+                        num_epochs=config.epochs, model_name=modelName)
+
+    saveModel(model=model_conv, config=config, model_name=modelName)

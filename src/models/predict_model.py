@@ -8,15 +8,17 @@ from model_functions.data_for_model import prepare_data
 from model_functions.loss_function import numpy_single_custom_loss_function
 from model_functions.Visualisation import CaptumVisualisation
 
+#data to set
 pathManagement=PathManagement(dataType="generated",
-                                noiseType="noised",
+                                noiseType="unnoised",
                                 centerInTheMiddle=False,
                                 purposeData="test")
-
 
 config=Config(pathManagement)
 config.setModelNameToRead("baseline_1_generated_mixed.pth")
 config.setBathSize(1)
+visualizeCaptumImage = False
+#end of data to be set
 
 ##########################################_PARAMETRIZE_############################################################
 
@@ -43,7 +45,7 @@ for images, labels in dataloaders['test']:
     singleError = numpy_single_custom_loss_function(output = outputs[0], label = labels[0])
 
  ########################################_CHARTS_AND_INFORMATIONS_##############################################################   
-    captumVisualisation.showCaptumVisualisation(images, visualize = False) 
+    captumVisualisation.showCaptumVisualisation(images, visualize = visualizeCaptumImage) 
 
     label=copy.deepcopy(float(labels[0]))
     output=copy.deepcopy(float(outputs[0]))

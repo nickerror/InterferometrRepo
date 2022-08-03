@@ -5,7 +5,7 @@ from torchvision.transforms.autoaugment import AutoAugmentPolicy
 class Config:
     def __init__(self, pathManagement, forTest = False):
         #Variables to edit
-        self.epochs = 40      #number of epochs
+        self.epochs = 35      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
         self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
