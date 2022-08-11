@@ -67,7 +67,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
                 with torch.set_grad_enabled(phase == 'train'):
                     #plt.imshow(inputs[0].cpu().numpy()[0], cmap='gray') #for plot in debug etc.
                     outputs = model(inputs) 
-                    outputs = torch.sum(outputs,1)/512 
+                    #outputs = torch.sum(outputs,1)/512 
                     loss = criterion(outputs, labels)
                     temp_quantity += 1
                     # backward + optimize only if in training phase
@@ -109,19 +109,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
     return model
 
 #############################___LEARNING_PROCES___###############################################
+withoutFreeze = False
 freeze = True
-withoutFreeze = True
 
 
 
 if withoutFreeze == True:
-    modelName = "without_freezen.pth" #temporary here
+    modelName = "without_freezen2.pth" #temporary here
     #########################################################################################################
     writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
 
 
     model_ft = models.resnet18(pretrained=True)
     model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
+    
 
     model_ft = model_ft.to(config.device())
 
@@ -140,27 +141,36 @@ if withoutFreeze == True:
     ###################################################################################################
 
 if freeze == True:
-    modelName = "freezen.pth" #temporary here
+    modelName = "freezen3.pth" #temporary here
     #########################################################################################################
     writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
 
     model_conv = models.resnet18(pretrained=True)
+
     for param in model_conv.parameters():
         param.requires_grad = False
 
-    model_conv.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
 
+    num_ftrs = model_conv.fc.in_features
+    model_conv.fc = nn.Sequential(nn.Linear(num_ftrs, 1), torch.nn.Hardtanh(0.0,1.0))
+
+    #net_add = nn.Hardtanh(min_val=0.0, max_val=1.0)
+    # model_conv = nn.Sequential(model_conv, torch.nn.Hardtanh(0.0,1.0))
+    #model_conv.fc = nn.ReLU()
+    # model_conv = nn.Sequential(model_conv, torch.nn.Hardtanh(0.0,1.0))
     model_conv = model_conv.to(config.device())
 
+
     # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(model_conv.parameters(), lr=config.learning_rate, momentum=config.momentum)
+    optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=config.learning_rate, momentum=config.momentum)
 
 
     # Decay LR by a factor of 0.1 every 7 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=config.step_size, gamma=config.gamma)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=config.step_size, gamma=config.gamma)
+    
 
     #####################################################################################################
-    model_conv = train_model(model=model_conv, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
+    model_conv = train_model(model=model_conv, criterion=custom_loss_function, optimizer=optimizer_conv, scheduler=exp_lr_scheduler,
                         num_epochs=config.epochs, model_name=modelName)
 
     saveModel(model=model_conv, config=config, model_name=modelName)
