@@ -90,7 +90,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
             writerTensorBoard.add_scalar('Loss/'+str(phase), float(epoch_loss), epoch)
             writerTensorBoard.add_scalar('Accuracy/'+str(phase), float(epoch_acc), epoch)
 
-            saveEpochModel(model=model, config=config, epoch_nr=epoch + 1, model_name=model_name)
+            if phase == 'train':
+                saveEpochModel(model=model, config=config, epoch_nr=epoch + 1, model_name=model_name)
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc: 
                 best_acc = epoch_acc 
@@ -109,20 +110,34 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
     return model
 
 #############################___LEARNING_PROCES___###############################################
-withoutFreeze = False
+withoutFreeze = True
 freeze = True
 
 
 
 if withoutFreeze == True:
-    modelName = "without_freezen2.pth" #temporary here
+    #modelName = "compare_freeze_without.pth" #temporary here
     #########################################################################################################
-    writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
+    writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + config.model_name_to_save) # declare tensorboard
 
 
     model_ft = models.resnet18(pretrained=True)
-    model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
-    
+    # model_ft.fc = nn.Hardtanh(min_val=0.0, max_val=1.0)
+    num_ftrs = model_ft.fc.in_features
+    #model_ft.fc = nn.Linear(num_ftrs, 512)
+    classifier_layer = nn.Sequential(
+            #nn.Linear(2048 , 512), #resnet50
+            nn.Linear(512 , 256),
+            nn.BatchNorm1d(256),
+            nn.Dropout(0.2),
+            nn.Linear(256 , 128),
+            nn.Linear(128 , 2),
+            nn.Linear(2 , 1),
+
+            nn.Hardtanh(min_val=0.0, max_val=1.0)
+        )
+    #model_ft = nn.Sequential(model_ft, classifier_layer)
+    model_ft.fc = classifier_layer
 
     model_ft = model_ft.to(config.device())
 
@@ -135,13 +150,13 @@ if withoutFreeze == True:
 
     #####################################################################################################
     model_ft = train_model(model=model_ft, criterion=custom_loss_function, optimizer=optimizer_ft, scheduler=exp_lr_scheduler,
-                        num_epochs=config.epochs, model_name=modelName)
+                        num_epochs=config.epochs, model_name=config.model_name_to_save)
 
-    saveModel(model=model_ft, config=config, model_name=modelName)
+    saveModel(model=model_ft, config=config, model_name=config.model_name_to_save)
     ###################################################################################################
 
 if freeze == True:
-    modelName = "freezen3.pth" #temporary here
+    modelName = "bathSize4_freeze.pth" #temporary here
     #########################################################################################################
     writerTensorBoard = SummaryWriter(f'tensorBoard/tensorBoard_' + modelName) # declare tensorboard
 
@@ -152,12 +167,23 @@ if freeze == True:
 
 
     num_ftrs = model_conv.fc.in_features
-    model_conv.fc = nn.Sequential(nn.Linear(num_ftrs, 1), torch.nn.Hardtanh(0.0,1.0))
+    #model_conv.fc = nn.Linear(num_ftrs, 1)
+    #model_conv.fc = nn.Sequential(nn.Linear(num_ftrs, 1), torch.nn.Hardtanh(0.0,1.0))
 
-    #net_add = nn.Hardtanh(min_val=0.0, max_val=1.0)
-    # model_conv = nn.Sequential(model_conv, torch.nn.Hardtanh(0.0,1.0))
-    #model_conv.fc = nn.ReLU()
-    # model_conv = nn.Sequential(model_conv, torch.nn.Hardtanh(0.0,1.0))
+    classifier_layer = nn.Sequential(
+        #nn.Linear(2048 , 512), #resnet50
+        nn.Linear(512 , 256),
+        nn.BatchNorm1d(256),
+        nn.Dropout(0.2),
+        nn.Linear(256 , 128),
+        nn.Linear(128 , 2),
+        nn.Linear(2 , 1),
+
+        nn.Hardtanh(min_val=0.0, max_val=1.0)
+    )
+    #model_ft = nn.Sequential(model_ft, classifier_layer)
+    model_conv.fc = classifier_layer
+    
     model_conv = model_conv.to(config.device())
 
 

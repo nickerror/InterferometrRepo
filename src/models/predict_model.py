@@ -9,13 +9,13 @@ from model_functions.loss_function import numpy_single_custom_loss_function
 from model_functions.Visualisation import CaptumVisualisation
 
 #data to set
-pathManagement=PathManagement(dataType="generated",
+pathManagement=PathManagement(dataType="original",
                                 noiseType="unnoised",
                                 centerInTheMiddle=False,
                                 purposeData="test")
 
 config=Config(pathManagement)
-config.setModelNameToRead("baseline_1_generated_mixed.pth")
+config.setModelNameToRead("bathSize32.pth")
 config.setBathSize(1)
 visualizeCaptumImage = False
 #end of data to be set
