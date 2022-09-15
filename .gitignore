@@ -88,4 +88,4 @@ target/
 # Mypy cache
 .mypy_cache/
 src/models/model_temp
-*_epochs*
+*_epoch_*
