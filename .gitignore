@@ -89,3 +89,5 @@ target/
 .mypy_cache/
 src/models/model_temp
 *_epoch_*
+models/old*
+src/models/tensorBoard*
