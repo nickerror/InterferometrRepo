@@ -8,7 +8,7 @@ class Config:
         self.epochs = 40      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
-        self.batch_size = 8   #batch size used for training (e.g. bath_size photos in one process)
+        self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
         #todo sprawdzic Adama
         self.learning_rate = 0.001 #for SGD = 0.01, for Adam = 10^-4 -- 10^-3
         self.train_size=0.8
@@ -19,7 +19,7 @@ class Config:
         self.step_size = 7
         self.gamma = 0.1
         self.num_workers = 0
-        self.model_name_to_save = "bathSize4.pth"
+        self.model_name_to_save = "generated_unnoised_notMiddle16.pth"
         self.model_name_to_read = "2_generated_mixed.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([

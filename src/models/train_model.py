@@ -19,7 +19,7 @@ from model_functions.loss_function import custom_loss_function
 
 ######################################################################################################
 
-pathManagement=PathManagement(dataType="generated", noiseType="mixed", centerInTheMiddle=False, purposeData="training")
+pathManagement=PathManagement(dataType="generated", noiseType="unnoised", centerInTheMiddle=False, purposeData="training")
 config=Config(pathManagement)
 
 
@@ -111,8 +111,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs, model_name):
 
 #############################___LEARNING_PROCES___###############################################
 withoutFreeze = True
-freeze = True
-
+freeze = False
+ 
 
 
 if withoutFreeze == True:

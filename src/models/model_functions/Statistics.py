@@ -1,4 +1,5 @@
 from cProfile import label
+from pyexpat import model
 import numpy as np
 from matplotlib import pyplot as plt
 class Stats:
@@ -11,7 +12,8 @@ class Stats:
                 self._labels = []
                 self._lossCalculatedError = []
 
-        def __init__(self, binCount = 100):
+        def __init__(self, chartName, binCount = 100):
+            self.__chartName = chartName
             self.__binCount = binCount
             self.__minError = 1.0
             self.__maxError = 0.0
@@ -20,6 +22,9 @@ class Stats:
             self.__binMeanError = np.zeros([binCount,1], dtype=float)
             self.__samplesQuantityBin = np.zeros([binCount,1], dtype=float)
 
+            self.__yAxis = np.zeros([binCount,1], dtype=float)
+            for x in range(binCount):
+                self.__yAxis[x] = x/binCount
             self.__returnedValues = self.__ReturnedValues()
 
         
@@ -44,25 +49,33 @@ class Stats:
 
 
         def plotStatistics(self):
-            plt.subplot(2,2,1)      
-            plt.plot(self.__binMeanError/self.__samplesQuantityBin)
-            plt.title("test")
-            plt.xlabel("Epsilon")
-            plt.ylabel("EpsilonError")
+            fig, imgplot = plt.subplots(2,2)
 
-            plt.subplot(2,2,2)
-            plt.plot(self.__samplesQuantityBin) #.
-            plt.ylabel('number of samples') #.
+            imgplot[0][0].plot(self.__yAxis, self.__binMeanError/self.__samplesQuantityBin)
+            imgplot[0][0].set_title("Średni błąd bezwzględny dla danego zakresu Eps")
+            imgplot[0][0].set_xlabel("Epsilon")
+            imgplot[0][0].set_ylabel("Błąd bezwzględny")
 
-            plt.subplot(2,2,3)
-            plt.plot(self.__binMinError) #.
-            plt.ylabel('min error') #.
 
-            plt.subplot(2,2,4)
-            plt.plot(self.__binMaxError) #.
-            plt.ylabel('max error') #.
+            imgplot[0][1].plot(self.__yAxis, self.__samplesQuantityBin)
+            imgplot[0][1].set_title("Liczba próbek dla danego zakresu Eps")
+            imgplot[0][1].set_xlabel("Epsilon")
+            imgplot[0][1].set_ylabel("Liczba próbek")
 
-            plt.show() #.
+
+            imgplot[1][0].plot(self.__yAxis, self.__binMinError)
+            imgplot[1][0].set_title("Minimalny błąd dla danego zakresu Eps")
+            imgplot[1][0].set_xlabel("Epsilon")
+            imgplot[1][0].set_ylabel("min. błąd")
+
+
+            imgplot[1][1].plot(self.__yAxis, self.__binMaxError)
+            imgplot[1][1].set_title("Maksymalny błąd dla danego zakresu Eps")
+            imgplot[1][1].set_xlabel("Epsilon")
+            imgplot[1][1].set_ylabel("max. błąd")
+
+            fig.suptitle(self.__chartName)
+            plt.show() 
 
         def plotReturnedStatistics(self):
             plt.clf()
@@ -81,11 +94,11 @@ class Stats:
             self.count=0
         
     
-    def __init__(self, binCount):
+    def __init__(self, binCount, chartName = "model"):
         self.binAmmount=binCount
         self.bin=self.Bin()
         self.bins=[]
-        self.statistics = self.Statistics(binCount)
+        self.statistics = self.Statistics(chartName, binCount)
 
         for i in range(self.binAmmount):
             internalBin=self.Bin()
