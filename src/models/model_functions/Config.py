@@ -5,7 +5,7 @@ from torchvision.transforms.autoaugment import AutoAugmentPolicy
 class Config:
     def __init__(self, pathManagement, forTest = False):
         #Variables to edit
-        self.epochs = 40      #number of epochs
+        self.epochs = 30      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
         self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
@@ -19,7 +19,7 @@ class Config:
         self.step_size = 7
         self.gamma = 0.1
         self.num_workers = 0
-        self.model_name_to_save = "generated_unnoised_notMiddle16.pth"
+        self.model_name_to_save = "loss_cos3.pth"
         self.model_name_to_read = "2_generated_mixed.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([

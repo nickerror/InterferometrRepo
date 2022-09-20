@@ -11,13 +11,13 @@ from model_functions.Visualisation import CaptumVisualisation
 # import pandas as pd
 import csv
 #data to set
-pathManagement=PathManagement(dataType="generated",
+pathManagement=PathManagement(dataType="original",
                                 noiseType="noised",
                                 centerInTheMiddle=False,
                                 purposeData="test")
 
 config=Config(pathManagement)
-config.setModelNameToRead("bathSize16.pth")
+config.setModelNameToRead("loss_cos2.pth")
 config.setBathSize(1)
 visualizeCaptumImage = False
 writeToCSV = False
