@@ -19,7 +19,7 @@ from model_functions.loss_function import custom_loss_function
 
 ######################################################################################################
 
-pathManagement=PathManagement(dataType="generated", noiseType="noised", centerInTheMiddle=False, purposeData="training")
+pathManagement=PathManagement(dataType="generated", noiseType="mixed", centerInTheMiddle=False, purposeData="training")
 config=Config(pathManagement)
 
 
@@ -27,6 +27,7 @@ config=Config(pathManagement)
 ##########################################################################################################
 
 dataloaders = prepare_data(config, train = True, datasetType = "baseline")
+#dataloaders = prepare_data(config, train = True, datasetType = "classic")
 dataset_sizes = {x: len(dataloaders[x]) for x in ['train', 'val']}
 train_features, train_labels=next(iter(dataloaders["train"]))
 
@@ -134,7 +135,7 @@ if withoutFreeze == True:
             nn.Linear(128 , 2),
             nn.Linear(2 , 1),
 
-            #nn.Hardtanh(min_val=0.0, max_val=1.0)
+            nn.Hardtanh(min_val=0.0, max_val=1.0)
         )
     #model_ft = nn.Sequential(model_ft, classifier_layer)
     model_ft.fc = classifier_layer

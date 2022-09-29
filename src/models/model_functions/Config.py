@@ -5,22 +5,24 @@ from torchvision.transforms.autoaugment import AutoAugmentPolicy
 class Config:
     def __init__(self, pathManagement, forTest = False):
         #Variables to edit
-        self.epochs = 30      #number of epochs
+        self.epochs = 40      #number of epochs
         self.num_classes = 1  #num classes in dataset
         #todo zwiekszyc batch_size -> 16 -> 32
         self.batch_size = 16   #batch size used for training (e.g. bath_size photos in one process)
         #todo sprawdzic Adama
-        self.learning_rate = 0.001 #for SGD = 0.01, for Adam = 10^-4 -- 10^-3
+        # self.learning_rate = 0.001 #for SGD = 0.01, for Adam = 10^-4 -- 10^-3
+        self.learning_rate = 0.0005 #for SGD = 0.01, for Adam = 10^-4 -- 10^-3
         self.train_size=0.8
         self.dataset = "InterferometerPhoto"
         #self.architecture = "CNN"
         self.pin_memory = True
         self.momentum = 0.9 #do Adama
-        self.step_size = 7
+        # self.step_size = 7
+        self.step_size = 10
         self.gamma = 0.1
         self.num_workers = 0
         self.model_name_to_save = "loss_cos3.pth"
-        self.model_name_to_read = "2_generated_mixed.pth"
+        self.model_name_to_read = "generated_unnoised_middle_2.pth"
         self.data_place = "local" #="cloud"
         self.data_transforms = transforms.Compose([
                         transforms.CenterCrop(448),

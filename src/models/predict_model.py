@@ -11,16 +11,16 @@ from model_functions.Visualisation import CaptumVisualisation
 # import pandas as pd
 import csv
 #data to set
-pathManagement=PathManagement(dataType="original",
-                                noiseType="noised",
-                                centerInTheMiddle=False,
+pathManagement=PathManagement(dataType="generated",
+                                noiseType="unnoised",
+                                centerInTheMiddle=True,
                                 purposeData="test")
 
 config=Config(pathManagement)
-config.setModelNameToRead("loss_cos2.pth")
+config.setModelNameToRead("generated_unnoised_middle_2.pth")
 config.setBathSize(1)
 visualizeCaptumImage = False
-writeToCSV = False
+writeToCSV = True
 chartStatsName = "model ResNet18 nauczony na danych generowanych, mieszanych"
 #end of data to be set
 

@@ -15,8 +15,8 @@ def numpy_single_custom_loss_function(output, label):
 
 
 def torch_single_custom_loss_function(output, label):
-    #return torch.min(torch.abs(1-torch.abs(label-output)) , torch.abs(label-output))
-    return (1-torch.cos((torch.abs(output-label))*2*torch.pi))/2
+    return torch.min(torch.abs(1-torch.abs(label-output)) , torch.abs(label-output))
+    #return (1-torch.cos((torch.abs(output-label))*2*torch.pi))/2
 
 def total(xs: List[float]) -> float:
     result: float = 0.0
